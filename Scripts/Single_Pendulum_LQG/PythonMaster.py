@@ -13,14 +13,15 @@ x = sp.Function('x')(t) #define x as a function of t
 I,H,V,F,F_drag = sp.symbols('I H V F F_drag', real = True)
 
 #Sample Period
-Ts = 1/250
+Ts = 1/200
 
 #0.5N rolling friction
 
 #actual system values
+length = 0.2345
 mweight = 0.016 #weight of pendulum weight
-mrod = 0.058 #weight of pendulum arm
-lval = 0.36 #in meters (center of mass)
+mrod = 0.042 #weight of pendulum arm
+lval = (mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
 F_dragVal = 0.05 #pendulum drag force
 Ival = (mweight + (mrod/3))*lval**2 #rotational inertia
 mcartVal = 0.943 #in kg
@@ -103,6 +104,7 @@ Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1), ssDisc.C, Ts*sp.diag(0.2,
 
 
 #-----CONTROL CODE-------#
+line = 0x00000000
 positionRaw = 0x0000
 angleRaw = 0x0000
 x = 0 #cart position
@@ -119,7 +121,7 @@ Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
-downVal = 10260 - 8192
+downVal = 15688 - 8192
 if downVal > 8192:
     correction = downVal - 8192
 elif downVal == 8192:
@@ -181,8 +183,8 @@ try:
 #         while cereal.in_waiting <= 3: #infinitely waits until arduino sends serial value
 #             #time.sleep(0.0001) #small delay (1us) to keep pi from overloading
 #             pass
-        line = bytearray() #set line as an empty byte array
-        while len(line) < 4: #read until line is filled with 4 bytes
+        line = bytearray()
+        while len(line) < 4: #read until line is filled
             line.extend(cereal.read(4 - len(line))) #reads response from Arduino
             #line = cereal.readline().rstrip() #reads response from Arduino
         #convert stream to independent variables
@@ -190,18 +192,17 @@ try:
             print("values dropped")
             print(list(line))
         else:
-            positionRaw, angleRaw = struct.unpack('>hh', line) #unpack bytes into two variables
-            angleRaw = angleRaw - round(correction) #adjust pendulum angle
+            positionRaw, angleRaw = struct.unpack('>hh', line)
+            angleRaw = angleRaw - round(correction)
             #convert positionRaw to meters and angleRaw to radians
             x = (positionRaw*0.638175)/6400 #based on distance measurement (m) for 6400 steps
             theta = ((angleRaw*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
-            theta = theta - np.clip(x/20, a_min=-0.05, a_max=0.05) #adjust target angle towards center of rail
-            correction = correction + x/50 #adjust tuning value to better center the pendulum
+            theta = theta - np.clip(x/20, a_min=-0.05, a_max=0.05)
+            correction = correction + x/50
 #             print(round(theta, 3))
             print(round(correction))
 #             print(angleRaw)
         cereal.reset_input_buffer()
-        
         #load measurements into matrix
         Ymeas = np.array([[theta], [x]])
         
@@ -211,9 +212,8 @@ try:
         
         #calculate control force
         u = -Kd @ YfinalEst
-        if loop > 200:
-            u = u*1.5 #increase gain after a few loops
-            
+        if loop < 200: #ramp force up to full
+            u = u*(loop/200.0)
         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
         
         #convert force to velocity and frequency (u.item takes value from 1x1 array)
@@ -222,7 +222,7 @@ try:
         xDiv = xDivLast + aCart * Ts #calulate target cart speed
         f = -(xDiv * 6400) / 0.638175 #conversion based on measured distance per pulse
         
-        #convert frequency to timer top value (+ or - indicates motor direction)
+        #convert frequency to timer top value
         if f > 2 or f < -2:
             conversion = (0.5/f)/(1.0/250000.0)
             pulses = conversion

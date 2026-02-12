@@ -13,14 +13,15 @@ x = sp.Function('x')(t) #define x as a function of t
 I,H,V,F,F_drag = sp.symbols('I H V F F_drag', real = True)
 
 #Sample Period
-Ts = 1/250
+Ts = 1/200
 
 #0.5N rolling friction
 
 #actual system values
+length = 0.2345
 mweight = 0.016 #weight of pendulum weight
-mrod = 0.058 #weight of pendulum arm
-lval = 0.36 #in meters (center of mass)
+mrod = 0.042 #weight of pendulum arm
+lval = (mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
 F_dragVal = 0.05 #pendulum drag force
 Ival = (mweight + (mrod/3))*lval**2 #rotational inertia
 mcartVal = 0.943 #in kg
@@ -124,7 +125,7 @@ Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
-downVal = 10301 - 8192
+downVal = 15688 - 8192
 if downVal > 8192:
     correction = downVal - 8192
 elif downVal == 8192:
@@ -182,13 +183,14 @@ try:
 #         Yest = ssDisc.A @ Ylast + ssDisc.B @ u
         
         #RK4 state estimation
-#         uVal = u.item() #take the value of u from the 1x1 matrix
-        k1 = Ydot(0, Ylast, u) #evaluate 1st time period
-        k2 = Ydot((Ts/2), (Ylast + 0.5*k1*Ts), u) #evaluate 2nd time period
-        k3 = Ydot((Ts/2), (Ylast + 0.5*k2*Ts), u)
-        k4 = Ydot(Ts, (Ylast + k3*Ts), u) #evaluate 3rd time period
+        u = float(u) #take the value of u from the 1x1 matrix
+        States = np.asarray(Ylast, dtype=float).reshape(4,1)
+        k1 = np.asarray(Ydot(0, States, u), dtype=float).reshape(4,1) #evaluate 1st time period
+        k2 = np.asarray(Ydot((Ts/2), (States + 0.5*k1*Ts), u), dtype=float).reshape(4,1) #evaluate 2nd time period
+        k3 = np.asarray(Ydot((Ts/2), (States + 0.5*k2*Ts), u), dtype=float).reshape(4,1)
+        k4 = np.asarray(Ydot(Ts, (States + k3*Ts), u), dtype=float).reshape(4,1) #evaluate 3rd time period
         
-        Yest = Ylast + ((k1 + 2*k2 + 2*k3 + k4)/6) #average estimations, and add to previous states  
+        Yest = States + ((k1 + 2*k2 + 2*k3 + k4)/6) * Ts #average estimations, and add to previous states
         
         #wait for arduino values
 #         while cereal.in_waiting <= 3: #infinitely waits until arduino sends serial value
@@ -211,7 +213,7 @@ try:
             theta = theta - np.clip(x/20, a_min=-0.05, a_max=0.05)
             correction = correction + x/50
 #             print(round(theta, 3))
-            print(round(correction))
+#             print(round(correction))
 #             print(angleRaw)
         cereal.reset_input_buffer()
         #load measurements into matrix
@@ -222,9 +224,9 @@ try:
         Ylast = YfinalEst.copy() #store values for next loop
         
         #calculate control force
-        u = (-Kd @ YfinalEst).item()
-        if loop > 200:
-            u = u*1.5
+        u = float((-Kd @ YfinalEst).item())
+        if loop < 200: #slowly ramp up force to full
+            u = u*(loop/200.0)
         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
         
         #convert force to velocity and frequency (u.item takes value from 1x1 array)
@@ -232,6 +234,8 @@ try:
         xDivLast = xDiv #store last speed
         xDiv = xDivLast + aCart * Ts #calulate target cart speed
         f = -(xDiv * 6400) / 0.638175 #conversion based on measured distance per pulse
+        
+        print(f)
         
         #convert frequency to timer top value
         if f > 2 or f < -2:

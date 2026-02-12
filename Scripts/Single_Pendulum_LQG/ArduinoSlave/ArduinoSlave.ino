@@ -79,7 +79,7 @@ void loop() {
   uint32_t TotalTime = millis();
   
 
-    if (TotalTime - lastPrint >= 4){
+    if (TotalTime - lastPrint >= 5){
       lastPrint = TotalTime;
 
       if(message == 0xFFFFFFFF){
