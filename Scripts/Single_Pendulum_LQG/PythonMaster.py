@@ -18,13 +18,13 @@ Ts = 1/200
 #0.5N rolling friction
 
 #actual system values
-length = 0.2345
-mweight = 0.016 #weight of pendulum weight
-mrod = 0.042 #weight of pendulum arm
-lval = (mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
+length = 0.25
+mweight = 0.030 #weight of pendulum weight
+mrod = 0.072 #weight of pendulum arm
+lval = 0.16#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
 F_dragVal = 0.05 #pendulum drag force
 Ival = (mweight + (mrod/3))*lval**2 #rotational inertia
-mcartVal = 0.943 #in kg
+mcartVal = 0.969 #in kg
 B_cart_dragVal = 0.5 #drag coefficient
 gval = 9.81 #gravitational constant
 m1val = mweight + mrod #in kg
@@ -121,7 +121,7 @@ Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
-downVal = 15688 - 8192
+downVal = 2468 #15688 - 8192
 if downVal > 8192:
     correction = downVal - 8192
 elif downVal == 8192:
