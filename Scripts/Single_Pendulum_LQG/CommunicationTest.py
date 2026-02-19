@@ -149,21 +149,21 @@ try:
         
         
         #wait for arduino values
-        while cereal.in_waiting <= 3: #infinitely waits until arduino sends serial value
-            #time.sleep(0.000001) #small delay (1us) to keep pi from overloading
-            pass
-        line = cereal.readline().rstrip() #reads response from Arduino
+        line = bytearray()
+        while len(line) < 4: #read until line is filled
+            line.extend(cereal.read(4 - len(line))) #reads response from Arduino
+            #line = cereal.readline().rstrip() #reads response from Arduino
         #convert stream to independent variables
         if len(line) != 4:
             print("values dropped")
-            angleRaw = 0
+            print(list(line))
         else:
             positionRaw, angleRaw = struct.unpack('>hh', line)
-            angleRaw2 = angleRaw - correction
             #convert positionRaw to meters and angleRaw to radians
-            x = (positionRaw*0.638175)/6400 #based on distance measurement (m) for 6400 steps
-            theta = ((angleRaw2*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
-        
+#             print(round(theta, 3))
+#             print(round(correction))
+#             print(angleRaw)
+        cereal.reset_input_buffer()
         
 #         print("pos:", x)
         print("angle:", angleRaw)
