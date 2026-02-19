@@ -19,13 +19,13 @@ Ts = 1/200
 #0.5N rolling friction
 
 #actual system values
-length = 0.2345
-mweight = 0.016 #weight of pendulum weight
-mrod = 0.042 #weight of pendulum arm
-lval = (mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
-T_dragVal = 0.05 #pendulum drag force
-Ival = (mweight + (mrod/3))*lval**2 #rotational inertia
-mcartVal = 0.943 #in kg
+length = 0.25
+mweight = 0.03 #weight of pendulum weight
+mrod = 0.072 #weight of pendulum arm
+lval = 0.16#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
+T_dragVal = 0.01 #pendulum drag force
+Ival = ((mweight + (mrod/3))*lval**2)/3 #rotational inertia
+mcartVal = 0.969 #in kg
 B_cart_dragVal = 0.5 #drag coefficient
 gval = 9.81 #gravitational constant
 m1val = mweight + mrod #in kg
@@ -102,7 +102,6 @@ Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1), ssDisc.C, Ts*sp.diag(0.2,
 
 
 
-
 #-----CONTROL CODE-------#
 line = 0x00000000
 positionRaw = 0x0000
@@ -121,7 +120,7 @@ Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
-downVal = 15688 - 8192
+downVal = 2452 #15688 - 8192
 if downVal > 8192:
     correction = downVal - 8192
 elif downVal == 8192:
@@ -173,7 +172,7 @@ loop = 0
 
 try:
     while True:
-        if loop < 250:
+        if loop < 60:
             loop = loop + 1
         #calculate predicted states (Kalman filter part 1)
         Yest = ssDisc.A @ Ylast + ssDisc.B @ u
@@ -192,15 +191,21 @@ try:
             print("values dropped")
             print(list(line))
         else:
+            angleLast = angleRaw #store old angle
             positionRaw, angleRaw = struct.unpack('>hh', line)
             angleRaw = angleRaw - round(correction)
+            
+            if abs(angleRaw-angleLast) > 2000:
+                angleRaw = angleLast #use old angle if new one makes no sense
+            
             #convert positionRaw to meters and angleRaw to radians
             x = (positionRaw*0.638175)/6400 #based on distance measurement (m) for 6400 steps
             theta = ((angleRaw*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
             theta = theta - np.clip(x/20, a_min=-0.05, a_max=0.05)
             correction = correction + x/50
 #             print(round(theta, 3))
-            print(round(correction))
+            
+            
 #             print(angleRaw)
         cereal.reset_input_buffer()
         #load measurements into matrix
@@ -212,12 +217,12 @@ try:
         
         #calculate control force
         u = -Kd @ YfinalEst
-        if loop < 200: #ramp force up to full
+        if loop < 50: #ramp force up to full
             u = u*(loop/200.0)
         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
         
         #convert force to velocity and frequency (u.item takes value from 1x1 array)
-        aCart = u.item() / mcartVal #calculate target cart acceleration
+        aCart = (u.item()*1.3) / mcartVal #calculate target cart acceleration
         xDivLast = xDiv #store last speed
         xDiv = xDivLast + aCart * Ts #calulate target cart speed
         f = -(xDiv * 6400) / 0.638175 #conversion based on measured distance per pulse
@@ -236,6 +241,9 @@ try:
         #arrange as a 32 bit signed integer for transmission
         sendPulses = struct.pack('<i', int(pulses))
         cereal.write(sendPulses) #send top value to Arduino
+        
+        currentTime = int(time.time() * 1000)
+        print(round(correction), angleRaw, currentTime, u.item())
         
 
 #this section kills the program

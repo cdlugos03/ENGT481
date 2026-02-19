@@ -24,7 +24,7 @@ mrod = 0.072 #weight of pendulum arm
 lval = 0.16#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
 F_dragVal = 0.05 #pendulum drag force
 Ival = (mweight + (mrod/3))*lval**2 #rotational inertia
-mcartVal = 0.969 #in kg
+mcartVal = 0.85 #in kg
 B_cart_dragVal = 0.5 #drag coefficient
 gval = 9.81 #gravitational constant
 m1val = mweight + mrod #in kg
@@ -121,7 +121,7 @@ Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
-downVal = 2468 #15688 - 8192
+downVal = 2452 #15688 - 8192
 if downVal > 8192:
     correction = downVal - 8192
 elif downVal == 8192:
@@ -200,7 +200,11 @@ try:
             theta = theta - np.clip(x/20, a_min=-0.05, a_max=0.05)
             correction = correction + x/50
 #             print(round(theta, 3))
-            print(round(correction))
+            
+            currentTime = int(time.time() * 1000)
+        
+#         print("pos:", x)
+            print(round(correction)) #, angleRaw, currentTime)
 #             print(angleRaw)
         cereal.reset_input_buffer()
         #load measurements into matrix

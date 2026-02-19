@@ -42,8 +42,8 @@ void setup() {
   while(!Serial){}
 
   Wire.begin();
-  Wire.setClock(400000);
-  Wire.setWireTimeout(2000, true); //set timeout to 2000us, and reset TWI on timeout
+  Wire.setClock(100000);
+  Wire.setWireTimeout(1000, false); //set timeout to 2000us, and reset TWI on timeout //REDUCE THIS
 
  while (Serial.available() <= 3){ //wait for a serial communication
         //delay(0.00001);
@@ -63,6 +63,18 @@ void loop() {
 
     if (TotalTime - lastPrint >= 5){
       lastPrint = TotalTime;
+
+      if(message == 0xFFFFFFFF){
+        TCCR3B = 0x00;
+        digitalWrite(9,HIGH); //disable motor
+      }
+      else{
+        //filter recieved value
+//        if(abs(abs(message) - abs(messageLast)) > 5000){
+//          message = messageLast;
+//        }
+       motorControl(message);
+      }
 
       raw = readAngleRaw();
       int16_t positionTrue = position;
@@ -91,20 +103,7 @@ void loop() {
         //delay(0.00001);
       }
       //message = Serial.read();
-      Serial.readBytes((char*)&message, 4);
-
-      if(message == 0xFFFFFFFF){
-        TCCR3B = 0x00;
-        digitalWrite(9,HIGH); //disable motor
-      }
-      else{
-        //filter recieved value
-//        if(abs(abs(message) - abs(messageLast)) > 5000){
-//          message = messageLast;
-//        }
-       motorControl(message);
-      }
-      
+      Serial.readBytes((char*)&message, 4);      
     }
 
 /*
