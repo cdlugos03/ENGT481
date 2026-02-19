@@ -43,7 +43,7 @@ void setup() {
 
   Wire.begin();
   Wire.setClock(100000);
-  Wire.setWireTimeout(1000, false); //set timeout to 2000us, and reset TWI on timeout //REDUCE THIS
+  Wire.setWireTimeout(2000, true); //set timeout to 2000us, and reset TWI on timeout //REDUCE THIS
 
  while (Serial.available() <= 3){ //wait for a serial communication
         //delay(0.00001);

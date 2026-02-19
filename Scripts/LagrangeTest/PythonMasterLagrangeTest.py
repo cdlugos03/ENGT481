@@ -24,7 +24,7 @@ mweight = 0.03 #weight of pendulum weight
 mrod = 0.072 #weight of pendulum arm
 lval = 0.16#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
 T_dragVal = 0.01 #pendulum drag force
-Ival = ((mweight + (mrod/3))*lval**2)/3 #rotational inertia
+Ival = ((mweight + (mrod/3))*lval**2) #rotational inertia
 mcartVal = 0.969 #in kg
 B_cart_dragVal = 0.5 #drag coefficient
 gval = 9.81 #gravitational constant
@@ -120,7 +120,7 @@ Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
-downVal = 2452 #15688 - 8192
+downVal = 2544 #15688 - 8192
 if downVal > 8192:
     correction = downVal - 8192
 elif downVal == 8192:
