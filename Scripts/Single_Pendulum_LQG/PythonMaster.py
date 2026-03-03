@@ -121,7 +121,7 @@ Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
-downVal = 2452 #15688 - 8192
+downVal = 10709 - 8192
 if downVal > 8192:
     correction = downVal - 8192
 elif downVal == 8192:

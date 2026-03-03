@@ -125,7 +125,7 @@ downVal = 11060
 correction = downVal - 8192
 
 #initialize serial
-cereal = serial.Serial('/dev/ttyACM0', 115200, timeout=0.003) #initiates connection, will restart arduino code
+cereal = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.003) #initiates connection, will restart arduino code
 time.sleep(3) #since code is restarted gives time for arduino
 cereal.reset_input_buffer() #clears any old log before reading data
 print("\nSerial started\n") #confirms this connection
