@@ -6,6 +6,46 @@ import time
 import struct
 import sys
 
+def angleRead(cor):
+    #Read encoder values
+    line = bytearray()
+    while len(line) < 6: #read until line is filled
+        line.extend(esp32.read(6 - len(line))) #reads response from Arduino
+    #convert stream to independent variables
+    if len(line) != 6:
+        print("values dropped")
+        print(list(line))
+        return 0
+    else:
+        angle1, angle2, angle3 = struct.unpack('>HHH', line)
+        #convert positionRaw to meters and angleRaw to radians
+        angle1 = angle1 - cor
+        theta = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
+        #             print(round(theta, 3))
+        #             print(round(correction))
+        print(theta, angle1)
+        return theta
+    esp32.reset_input_buffer()
+
+def positionRead():
+    #wait for position value
+    line = bytearray()
+    while len(line) < 2: #read until line is filled
+        line.extend(arduino.read(2 - len(line))) #reads response from Arduino
+    #convert stream to independent variables
+    if len(line) != 2:
+        print("values dropped")
+        print(list(line))
+        return 0
+    else:
+        positionRaw = struct.unpack('>h', line)[0]
+        #convert positionRaw to meters and angleRaw to radians
+        x = (positionRaw*0.638175)/6400 #based on distance measurement (m) for 6400 steps
+#         print(positionRaw)
+        return x
+    arduino.reset_input_buffer()
+
+
 #define symbols and symbol properties
 t,g,l,m1,mcart,T_drag,B_cart_drag = sp.symbols('t g l m1 mcart T_drag B_cart_drag', positive = True)
 theta = sp.Function('theta')(t) #define theta as a function of t
@@ -121,7 +161,7 @@ Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
-downVal = 10709 - 8192
+downVal = 11078 - 8192
 if downVal > 8192:
     correction = downVal - 8192
 elif downVal == 8192:
@@ -130,44 +170,28 @@ else:
     correction = downVal + 8192
 
 #initialize serial
-cereal = serial.Serial('/dev/ttyACM0', 115200, timeout=0.005) #initiates connection, will restart arduino code
+esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
+arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=0.003) #initiate communication with the arduino
 time.sleep(3) #since code is restarted gives time for arduino
-cereal.reset_input_buffer() #clears any old log before reading data
-print("\nSerial started\n")#confirms this connection
+arduino.reset_input_buffer() #clears any old log before reading data
+print("\nSerial started\n") #confirms this connection
 line = 0x00000000
 
-#send blank control value
+#get first angle measurements
+#Read encoder values
+theta1 = angleRead(correction)
+
+
+#send low frequency control value to trigger arduino response
 pulses = -65535
 #arrange as a 32 bit signed integer for transmission
 sendPulses = struct.pack('<i', int(pulses))
-cereal.write(sendPulses) #send top value to Arduino
+arduino.write(sendPulses) #send top value to Arduino
 
-#get first measurement
-line = bytearray()
-while len(line) < 4: #read until line is filled
-    line.extend(cereal.read(4 - len(line))) #reads response from Arduino
-    #line = cereal.readline().rstrip() #reads response from Arduino
-#convert stream to independent variables
-if len(line) != 4:
-    print("values dropped")
-    print(list(line))
-else:
-    positionRaw, angleRaw = struct.unpack('>hh', line)
-    angleRaw = angleRaw - correction
-    #convert positionRaw to meters and angleRaw to radians
-    x = (positionRaw*0.638175)/6400 #based on distance measurement (m) for 6400 steps
-    theta = ((angleRaw*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
+#get position from arduino
+x = positionRead()
 
-    print(round(theta, 3), round(correction))
-cereal.reset_input_buffer()
-
-Ylast = np.array([[theta], [0], [x], [0]])
-
-#send blank control value
-pulses = -65535
-#arrange as a 32 bit signed integer for transmission
-sendPulses = struct.pack('<i', int(pulses))
-cereal.write(sendPulses) #send top value to Arduino
+Ylast = np.array([[theta1], [0], [x], [0]])
 
 loop = 0
 
@@ -176,39 +200,14 @@ try:
         if loop < 250:
             loop = loop + 1
         #calculate predicted states (Kalman filter part 1)
-        Yest = ssDisc.A @ Ylast + ssDisc.B @ u
-        #Yest = Ylast + Yest * Ts #This line is not needed since the system has been discretized  
+        Yest = ssDisc.A @ Ylast + ssDisc.B @ u 
+
+
+        theta1 = angleRead(round(correction))#read angle
+        theta1 = theta1 - np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center
         
-        #wait for arduino values
-#         while cereal.in_waiting <= 3: #infinitely waits until arduino sends serial value
-#             #time.sleep(0.0001) #small delay (1us) to keep pi from overloading
-#             pass
-        line = bytearray()
-        while len(line) < 4: #read until line is filled
-            line.extend(cereal.read(4 - len(line))) #reads response from Arduino
-            #line = cereal.readline().rstrip() #reads response from Arduino
-        #convert stream to independent variables
-        if len(line) != 4:
-            print("values dropped")
-            print(list(line))
-        else:
-            positionRaw, angleRaw = struct.unpack('>hh', line)
-            angleRaw = angleRaw - round(correction)
-            #convert positionRaw to meters and angleRaw to radians
-            x = (positionRaw*0.638175)/6400 #based on distance measurement (m) for 6400 steps
-            theta = ((angleRaw*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
-            theta = theta - np.clip(x/20, a_min=-0.05, a_max=0.05)
-            correction = correction + x/50
-#             print(round(theta, 3))
-            
-            currentTime = int(time.time() * 1000)
-        
-#         print("pos:", x)
-            print(round(correction)) #, angleRaw, currentTime)
-#             print(angleRaw)
-        cereal.reset_input_buffer()
-        #load measurements into matrix
-        Ymeas = np.array([[theta], [x]])
+        #load measurements into matrix (using position from last loop)
+        Ymeas = np.array([[theta1], [x]])
         
         #Factor in measured states(Kalman filter part 2) (@ for matrix multiplication)
         YfinalEst = Yest + Ld @ (Ymeas - ssDisc.C @ Yest)
@@ -235,11 +234,16 @@ try:
         elif f < 0:
             pulses = -65535
             
-        cereal.reset_output_buffer()
+        arduino.reset_output_buffer()
         
         #arrange as a 32 bit signed integer for transmission
         sendPulses = struct.pack('<i', int(pulses))
-        cereal.write(sendPulses) #send top value to Arduino
+        arduino.write(sendPulses) #send top value to Arduino
+        
+        x = positionRead() #read position from arduino
+        correction = correction + x/50 #correct correction value slightly
+        
+        
         
 
 #this section kills the program

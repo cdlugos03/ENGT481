@@ -6,11 +6,16 @@ import time
 import struct
 
 #angle corrections
-downVal = 11060
-correction = downVal - 8192
+downVal = 11078 - 8192
+if downVal > 8192:
+    correction = downVal - 8192
+elif downVal == 8192:
+    correction = 0
+else:
+    correction = downVal + 8192
 
 #initialize serial
-# cereal = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.003) #initiate communication with the ESP32
+esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
 arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=0.003) #initiate communication with the arduino
 time.sleep(3) #since code is restarted gives time for arduino
 arduino.reset_input_buffer() #clears any old log before reading data
@@ -31,16 +36,35 @@ fDir = 1
 
 
 try:
-    while True:        
+    while True:
+        
+        #Read encoder values
+        line = bytearray()
+        while len(line) < 6: #read until line is filled
+            line.extend(esp32.read(6 - len(line))) #reads response from Arduino
+        #convert stream to independent variables
+        if len(line) != 6:
+            print("values dropped")
+            print(list(line))
+        else:
+            angle1, angle2, angle3 = struct.unpack('>HHH', line)
+            #convert positionRaw to meters and angleRaw to radians
+            print(angle1)
+            angle1 = angle1 - correction
+            theta = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
+#             print(angle1, angle2, angle3)
+            print(theta)
+        esp32.reset_input_buffer()
+        
         
         #Frequency sweep
-        time.sleep(0.002) # wait 5ms
+#         time.sleep(0.0005) # wait 5ms
         
-        f = f + fDir #increment f
+        f = f + 20*fDir #increment f
         
-        if f > 6000: #toggle direction
+        if f > 12000: #toggle direction
             fDir = -1
-        elif f < -6000:
+        elif f < -12000:
             fDir = 1
 
         
@@ -67,7 +91,7 @@ try:
         elif f < 0:
             pulses = -65535
         
-        print(round(pulses))
+#         print(round(pulses))
         
         #arrange as a 32 bit signed integer for transmission
         sendPulses = struct.pack('<i', int(pulses))
@@ -75,7 +99,7 @@ try:
 #         cereal.write('\n') #indent
 
         
-        #wait for encoder values
+        #wait for position value
         line = bytearray()
         while len(line) < 2: #read until line is filled
             line.extend(arduino.read(2 - len(line))) #reads response from Arduino
@@ -84,12 +108,16 @@ try:
             print("values dropped")
             print(list(line))
         else:
-            positionRaw = struct.unpack('>h', line)
+            positionRaw = struct.unpack('>h', line)[0]
             #convert positionRaw to meters and angleRaw to radians
 #             print(round(theta, 3))
 #             print(round(correction))
-            print(positionRaw)
+#             print(positionRaw)
         arduino.reset_input_buffer()
+        
+        
+#         theta = theta - np.clip(x/20, a_min=-0.05, a_max=0.05)
+#         correction = correction + x/50
         
 
 #this section kills the program
