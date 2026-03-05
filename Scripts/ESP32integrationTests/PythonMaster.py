@@ -24,9 +24,9 @@ def angleRead(cor):
         #             print(round(theta, 3))
         #             print(round(correction))
         print(thetaRead, angle1)
+        esp32.reset_input_buffer()
         return thetaRead
-    esp32.reset_input_buffer()
-
+ 
 def positionRead():
     #wait for position value
     line2 = bytearray()
@@ -36,14 +36,15 @@ def positionRead():
     if len(line2) != 2:
         print("values dropped")
         print(list(line2))
+        arduino.reset_input_buffer()
         return 0
     else:
         positionRaw = struct.unpack('>h', line2)[0]
         #convert positionRaw to meters and angleRaw to radians
         x1 = (positionRaw*0.638175)/6400 #based on distance measurement (m) for 6400 steps
 #         print(positionRaw)
+        arduino.reset_input_buffer()
         return x1
-    arduino.reset_input_buffer()
 
 
 #define symbols and symbol properties
@@ -161,7 +162,7 @@ Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
-downVal = 11078 - 8192
+downVal = 10675 - 8192
 if downVal > 8192:
     correction = downVal - 8192
 elif downVal == 8192:
