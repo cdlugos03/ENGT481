@@ -8,41 +8,41 @@ import sys
 
 def angleRead(cor):
     #Read encoder values
-    line = bytearray()
-    while len(line) < 6: #read until line is filled
-        line.extend(esp32.read(6 - len(line))) #reads response from Arduino
+    line1 = bytearray()
+    while len(line1) < 6: #read until line is filled
+        line1.extend(esp32.read(6 - len(line1))) #reads response from Arduino
     #convert stream to independent variables
-    if len(line) != 6:
+    if len(line1) != 6:
         print("values dropped")
-        print(list(line))
+        print(list(line1))
         return 0
     else:
-        angle1, angle2, angle3 = struct.unpack('>HHH', line)
+        angle1, angle2, angle3 = struct.unpack('>HHH', line1)
         #convert positionRaw to meters and angleRaw to radians
         angle1 = angle1 - cor
-        theta = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
+        thetaRead = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
         #             print(round(theta, 3))
         #             print(round(correction))
-        print(theta, angle1)
-        return theta
+        print(thetaRead, angle1)
+        return thetaRead
     esp32.reset_input_buffer()
 
 def positionRead():
     #wait for position value
-    line = bytearray()
-    while len(line) < 2: #read until line is filled
-        line.extend(arduino.read(2 - len(line))) #reads response from Arduino
+    line2 = bytearray()
+    while len(line2) < 2: #read until line is filled
+        line2.extend(arduino.read(2 - len(line2))) #reads response from Arduino
     #convert stream to independent variables
-    if len(line) != 2:
+    if len(line2) != 2:
         print("values dropped")
-        print(list(line))
+        print(list(line2))
         return 0
     else:
-        positionRaw = struct.unpack('>h', line)[0]
+        positionRaw = struct.unpack('>h', line2)[0]
         #convert positionRaw to meters and angleRaw to radians
-        x = (positionRaw*0.638175)/6400 #based on distance measurement (m) for 6400 steps
+        x1 = (positionRaw*0.638175)/6400 #based on distance measurement (m) for 6400 steps
 #         print(positionRaw)
-        return x
+        return x1
     arduino.reset_input_buffer()
 
 
@@ -176,6 +176,9 @@ time.sleep(3) #since code is restarted gives time for arduino
 arduino.reset_input_buffer() #clears any old log before reading data
 print("\nSerial started\n") #confirms this connection
 line = 0x00000000
+
+time.sleep(0.1)
+
 
 #get first angle measurements
 #Read encoder values
