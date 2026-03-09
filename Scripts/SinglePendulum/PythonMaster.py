@@ -46,12 +46,11 @@ def positionRead():
         arduino.reset_input_buffer()
         return x1
 
-
 #define symbols and symbol properties
-t,g,l,m1,mcart,T_drag,B_cart_drag = sp.symbols('t g l m1 mcart T_drag B_cart_drag', positive = True)
+t,g,l,m1,mcart,B_cart_drag = sp.symbols('t g l m1 mcart B_cart_drag', positive = True)
 theta = sp.Function('theta')(t) #define theta as a function of t
 x = sp.Function('x')(t) #define x as a function of t
-I,H,V,F,F_drag = sp.symbols('I H V F F_drag', real = True)
+I,H,V,F,T_drag = sp.symbols('I H V F T_drag', real = True)
 
 #Sample Period
 Ts = 1/200
@@ -60,38 +59,37 @@ Ts = 1/200
 
 #actual system values
 length = 0.25
-mweight = 0.030 #weight of pendulum weight
+mweight = 0.03 #weight of pendulum weight
 mrod = 0.072 #weight of pendulum arm
 lval = 0.16#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
-F_dragVal = 0.05 #pendulum drag force
-Ival = (mweight + (mrod/3))*lval**2 #rotational inertia
-mcartVal = 0.85 #in kg
+T_dragVal = 0.01 #pendulum drag force
+Ival = ((mweight + (mrod/3))*lval**2) #rotational inertia
+mcartVal = 0.969 #in kg
 B_cart_dragVal = 0.5 #drag coefficient
 gval = 9.81 #gravitational constant
 m1val = mweight + mrod #in kg
 #substitutions
-vals = {m1:m1val,mcart:mcartVal,l:lval,g:gval,I:Ival,F_drag:F_dragVal,B_cart_drag:B_cart_dragVal}
+vals = {m1:m1val,mcart:mcartVal,l:lval,g:gval,I:Ival,T_drag:T_dragVal,B_cart_drag:B_cart_dragVal}
 
 #define equations
-CartH = sp.Eq(F - H - B_cart_drag * sp.Derivative(x,t), mcart * sp.Derivative(x,t,2))
-HorizontalForce = sp.Eq(H - F_drag, m1 * sp.Derivative(x-l*sp.sin(theta),t,2))
+T = (1/2)*(mcart+m1)*x.diff(t)**2 - m1*l*sp.cos(theta)*x.diff(t)*theta.diff(t) + (1/2)*(m1*l**2+I)*theta.diff(t)**2
+U = m1*g*l*sp.cos(theta)
 
-Hsolve = sp.solve(HorizontalForce, H)[0] #solve for H, taking only the first(only in this case) solution [0]
-mainEq1 = CartH.subs(H, Hsolve) #substitute in Hsolve for H
+L = T - U
 
-Normal_to_bar = sp.Eq(F_drag*sp.cos(theta) - V*sp.sin(theta) - H*sp.cos(theta) + m1*g*sp.sin(theta), m1*(l*sp.Derivative(theta,t,2) - sp.Derivative(x,t,2)*sp.cos(theta)))
-Torque = sp.Eq(V*l*sp.sin(theta) + H*l*sp.cos(theta), I*sp.Derivative(theta,t,2))
+EL_x = sp.Eq(
+    sp.diff(sp.diff(L, x.diff(t)), t) - sp.diff(L, x),
+    F - B_cart_drag * x.diff(t)
+    )
 
-Normal_to_bar = Normal_to_bar.subs(H, Hsolve) #substitute in Hsolve for H
-Torque = Torque.subs(H, Hsolve)
-
-Vsolve = sp.solve(Torque, V)[0] #solve for V
-mainEq2 = sp.simplify(Normal_to_bar.subs(V, Vsolve))
-
+EL_theta = sp.Eq(
+    sp.diff(sp.diff(L, theta.diff(t)), t) - sp.diff(L, theta),
+    -T_drag
+    )
 
 #move everything to one side of the equation (set equal to 0)
-Eq1 = mainEq1.lhs - mainEq1.rhs
-Eq2 = mainEq2.lhs - mainEq2.rhs
+Eq1 = EL_x.lhs - EL_x.rhs
+Eq2 = EL_theta.lhs - EL_theta.rhs
 #set up symbols for x2div and theta2div
 x2div,theta2div = sp.symbols('x2div theta2div', real = True)
 #substitute in new symbols in place of accelerations
