@@ -67,9 +67,9 @@ Ival = ((mweight + (mrod/3))*lval**2) #rotational inertia
 m1val = mweight + mrod #in kg
 
 # length2 = 0.25 #probably not needed for anything
-mtotal2 = 0.075
-lval2 = 0.16 #length to center of mass
-Ival2 = Ival #CHANGE THIS TO VALUE FROM CAD
+mtotal2 = 0.08
+lval2 = 0.20 #length to center of mass
+Ival2 = Ival/1.5 #CHANGE THIS TO VALUE FROM CAD
 
 mcartVal = 0.969 #in kg
 B_cart_dragVal = 0.5 #drag coefficient
@@ -127,7 +127,7 @@ F2 = Subs[theta22div].subs(StateSubs)
 F3 = Subs[x2div].subs(StateSubs)
 
 #combine into a matrix (non-linear state space model), and create state matrix (Y)
-NonLinMod = sp.Matrix([Y2, F1, Y4, F2, Y5, F3])
+NonLinMod = sp.Matrix([Y2, F1, Y4, F2, Y6, F3])
 Y = sp.Matrix([Y1, Y2, Y3, Y4, Y5, Y6])
 
 #linearize model
@@ -149,7 +149,18 @@ ssCont = ctrl.ss(A, B, C, D)
 ssDisc = ctrl.c2d(ssCont, Ts)
 
 
-
+# #Testing
+# # Debugging Block
+# print("Is A finite:", np.isfinite(ssDisc.A).all())
+# print("Is B finite:", np.isfinite(ssDisc.B).all())
+# 
+# # Check for controllability
+# C_mat = ctrl.ctrb(ssDisc.A, ssDisc.B)
+# print("Controllability Rank:", np.linalg.matrix_rank(C_mat))
+# 
+# # Eigenvalue check
+# print("Eigenvalues of A (continuous):", np.linalg.eigvals(ssCont.A))
+    
 
 #-----TUNING VALUES-----#
 #calculate lqr and kalman filter values
