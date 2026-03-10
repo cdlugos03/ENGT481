@@ -53,7 +53,7 @@ try:
             angle1 = angle1 - correction
             theta = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
 #             print(angle1, angle2, angle3)
-            print(theta)
+#             print(theta)
         esp32.reset_input_buffer()
         
         

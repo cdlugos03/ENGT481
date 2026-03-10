@@ -6,7 +6,11 @@ import time
 import struct
 import sys
 
+angleLast = 0
+
 def angleRead(cor):
+    global angleLast
+    
     #Read encoder values
     line1 = bytearray()
     while len(line1) < 6: #read until line is filled
@@ -18,13 +22,18 @@ def angleRead(cor):
         return 0
     else:
         angle1, angle2, angle3 = struct.unpack('>HHH', line1)
+        
+        if angle1 > 17000:
+            angle1 = angleLast
+            print("FILTERED")
+        angleLast = angle1 #store angle for next loop
+        
         #convert positionRaw to meters and angleRaw to radians
         angle1 = angle1 - cor
         thetaRead = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
-        #             print(round(theta, 3))
-        #             print(round(correction))
-        print(thetaRead, angle1)
+        
         esp32.reset_input_buffer()
+        print(angle1)
         return thetaRead
  
 def positionRead():
@@ -132,7 +141,8 @@ ssDisc = ctrl.c2d(ssCont, Ts)
 #-----TUNING VALUES-----#
 #calculate lqr and kalman filter values
 #K, S, E = ctrl.lqr(A, B, sp.diag(10,2,1,1), 0.5)
-Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(10,1,9,0.5), 1)
+# Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(10,1,6,0.5), 1)
+Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(5,5,5,5), 1)
 #QN and RN are multiplied/divided by Ts to discretize them. MATLAB does this internally
 Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1), ssDisc.C, Ts*sp.diag(0.2,0.001,0.2,0.001), (0.01/Ts)*sp.diag(1,1))
 
@@ -160,13 +170,14 @@ Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
-downVal = 10675 - 8192
-if downVal > 8192:
-    correction = downVal - 8192
-elif downVal == 8192:
-    correction = 0
-else:
-    correction = downVal + 8192
+# downVal = 10675 - 8192
+# if downVal > 8192:
+#     correction = downVal - 8192
+# elif downVal == 8192:
+#     correction = 0
+# else:
+#     correction = downVal + 8192
+correction = 10685
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -205,9 +216,10 @@ try:
         Yest = ssDisc.A @ Ylast + ssDisc.B @ u 
 
 
-        theta1 = angleRead(round(correction))#read angle
+        theta1 = angleRead(correction)#read angle
+#         #TRY TO REMOVE THIS!
         theta1 = theta1 - np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center
-        
+
         #load measurements into matrix (using position from last loop)
         Ymeas = np.array([[theta1], [x]])
         
@@ -243,14 +255,15 @@ try:
         arduino.write(sendPulses) #send top value to Arduino
         
         x = positionRead() #read position from arduino
-        correction = correction + x/50 #correct correction value slightly
+#         correction = correction + x/50 #correct correction value slightly
         
+#         print(correction)
         
         
 
 #this section kills the program
 except KeyboardInterrupt: # to end program use ctrl c
     print("\nControl loop stopped\n")
-    cereal.write(0xFFFFFFFF) #send stop command to Arduino
-    cereal.close() #ends connection between devices
+    arduino.write(0xFFFFFFFF) #send stop command to Arduino
+    arduino.close() #ends connection between devices
     sys.exit()

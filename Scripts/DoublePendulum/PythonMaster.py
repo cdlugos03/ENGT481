@@ -6,7 +6,7 @@ import time
 import struct
 import sys
 
-def angleRead(cor):
+def angleRead(cor, cor2):
     #Read encoder values
     line1 = bytearray()
     while len(line1) < 6: #read until line is filled
@@ -21,11 +21,13 @@ def angleRead(cor):
         #convert positionRaw to meters and angleRaw to radians
         angle1 = angle1 - cor
         thetaRead = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
+        angle2 = angle2 - cor2
+        theta2Read = ((angle2*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
         #             print(round(theta, 3))
         #             print(round(correction))
         print(thetaRead, angle1)
         esp32.reset_input_buffer()
-        return thetaRead
+        return thetaRead, theta2Read
  
 def positionRead():
     #wait for position value
@@ -165,7 +167,7 @@ ssDisc = ctrl.c2d(ssCont, Ts)
 #-----TUNING VALUES-----#
 #calculate lqr and kalman filter values
 #K, S, E = ctrl.lqr(A, B, sp.diag(10,2,1,1), 0.5)
-Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(8,1,10,1,7,0.5), 1)
+Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(8,1,8,1,8,0.5), 1)
 #QN and RN are multiplied/divided by Ts to discretize them. MATLAB does this internally
 Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, Ts*sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), (0.01/Ts)*sp.diag(1,1,1))
 
@@ -175,115 +177,119 @@ Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, Ts*sp.diag(
 
 
 
-# #-----CONTROL CODE-------#
-# line = 0x00000000
-# positionRaw = 0x0000
-# angleRaw = 0x0000
-# x = 0 #cart position
-# theta = 0 #pendulum angle
-# xDiv = 0 #cart velocity
-# f = 0
-# conversion = 0
-# pulses = 0
-# #thetaDiv = 0
-# u = np.array([[0.0]]) #control force
-# Ymeas = np.array([[0], [0]]) #measured states (no thetaDiv)
-# Yest = np.array([[0], [0], [0], [0]]) #estimated states
-# Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
-# YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
-# 
-# #angle corrections
-# downVal = 10675 - 8192
-# if downVal > 8192:
-#     correction = downVal - 8192
-# elif downVal == 8192:
-#     correction = 0
-# else:
-#     correction = downVal + 8192
-# 
-# #initialize serial
-# esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
-# arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=0.003) #initiate communication with the arduino
-# time.sleep(3) #since code is restarted gives time for arduino
-# arduino.reset_input_buffer() #clears any old log before reading data
-# print("\nSerial started\n") #confirms this connection
-# line = 0x00000000
-# 
-# time.sleep(0.1)
-# 
-# 
-# #get first angle measurements
-# #Read encoder values
-# theta1 = angleRead(correction)
-# 
-# 
-# #send low frequency control value to trigger arduino response
-# pulses = -65535
-# #arrange as a 32 bit signed integer for transmission
-# sendPulses = struct.pack('<i', int(pulses))
-# arduino.write(sendPulses) #send top value to Arduino
-# 
-# #get position from arduino
-# x = positionRead()
-# 
-# Ylast = np.array([[theta1], [0], [x], [0]])
-# 
-# loop = 0
-# 
-# try:
-#     while True:
-#         if loop < 250:
-#             loop = loop + 1
-#         #calculate predicted states (Kalman filter part 1)
-#         Yest = ssDisc.A @ Ylast + ssDisc.B @ u 
-# 
-# 
-#         theta1 = angleRead(round(correction))#read angle
+#-----CONTROL CODE-------#
+line = 0x00000000
+positionRaw = 0x0000
+angleRaw = 0x0000
+x = 0 #cart position
+theta = 0 #pendulum angle
+xDiv = 0 #cart velocity
+f = 0
+conversion = 0
+pulses = 0
+#thetaDiv = 0
+u = np.array([[0.0]]) #control force
+Ymeas = np.array([[0], [0]]) #measured states (no thetaDiv)
+Yest = np.array([[0], [0], [0], [0]]) #estimated states
+Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
+YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
+
+#angle corrections
+downVal = 10675 - 8192 #for pendulum 1
+if downVal > 8192:
+    correction = downVal - 8192
+elif downVal == 8192:
+    correction = 0
+else:
+    correction = downVal + 8192
+
+correction2 = 10500 #for pendulum 2 PLACEHOLDER VALUE, MAKE SURE TO CHANGE
+
+#initialize serial
+esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
+arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=0.003) #initiate communication with the arduino
+time.sleep(3) #since code is restarted gives time for arduino
+arduino.reset_input_buffer() #clears any old log before reading data
+print("\nSerial started\n") #confirms this connection
+line = 0x00000000
+
+time.sleep(0.1)
+
+
+#get first angle measurements
+#Read encoder values
+theta1, theta2 = angleRead(correction, correction2)
+
+
+#send low frequency control value to trigger arduino response
+pulses = -65535
+#arrange as a 32 bit signed integer for transmission
+sendPulses = struct.pack('<i', int(pulses))
+arduino.write(sendPulses) #send top value to Arduino
+
+#get position from arduino
+x = positionRead()
+
+#store initial measurements in a matrix
+Ylast = np.array([[theta1], [0], [theta2], [0], [x], [0]])
+
+loop = 0 #loop counting variable
+
+try:
+    while True:
+        if loop < 250: #only count until loop 251
+            loop = loop + 1
+        
+        #calculate predicted states (Kalman filter part 1)
+        Yest = ssDisc.A @ Ylast + ssDisc.B @ u
+
+        theta1, theta2 = angleRead(round(correction), correction2)#read angle
 #         theta1 = theta1 - np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center
-#         
-#         #load measurements into matrix (using position from last loop)
-#         Ymeas = np.array([[theta1], [x]])
-#         
-#         #Factor in measured states(Kalman filter part 2) (@ for matrix multiplication)
-#         YfinalEst = Yest + Ld @ (Ymeas - ssDisc.C @ Yest)
-#         Ylast = YfinalEst.copy() #store values for next loop
-#         
-#         #calculate control force
-#         u = -Kd @ YfinalEst
-#         if loop < 200: #ramp force up to full
-#             u = u*(loop/200.0)
-#         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
-#         
-#         #convert force to velocity and frequency (u.item takes value from 1x1 array)
-#         aCart = u.item() / mcartVal #calculate target cart acceleration
-#         xDivLast = xDiv #store last speed
-#         xDiv = xDivLast + aCart * Ts #calulate target cart speed
-#         f = -(xDiv * 6400) / 0.638175 #conversion based on measured distance per pulse
-#         
-#         #convert frequency to timer top value
-#         if f > 2 or f < -2:
-#             conversion = (0.5/f)/(1.0/250000.0)
-#             pulses = conversion
-#         elif f >= 0:
-#             pulses = 65535
-#         elif f < 0:
-#             pulses = -65535
-#             
-#         arduino.reset_output_buffer()
-#         
-#         #arrange as a 32 bit signed integer for transmission
-#         sendPulses = struct.pack('<i', int(pulses))
-#         arduino.write(sendPulses) #send top value to Arduino
-#         
-#         x = positionRead() #read position from arduino
-#         correction = correction + x/50 #correct correction value slightly
-#         
-#         
-#         
-# 
-# #this section kills the program
-# except KeyboardInterrupt: # to end program use ctrl c
-#     print("\nControl loop stopped\n")
-#     cereal.write(0xFFFFFFFF) #send stop command to Arduino
-#     cereal.close() #ends connection between devices
-#     sys.exit()
+        
+        #load measurements into matrix (using position from last loop)
+        Ymeas = np.array([[theta1], [theta2], [x]])
+        
+        #Factor in measured states(Kalman filter part 2) (@ for matrix multiplication)
+        YfinalEst = Yest + Ld @ (Ymeas - ssDisc.C @ Yest)
+        Ylast = YfinalEst.copy() #store values for next loop
+        
+        #calculate control force
+        u = -Kd @ YfinalEst
+        if loop < 200: #ramp force up to full
+            u = u*(loop/200.0)
+        #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
+        
+        #convert force to velocity and frequency (u.item takes value from 1x1 array)
+        aCart = u.item() / mcartVal #calculate target cart acceleration
+        xDivLast = xDiv #store last speed
+        xDiv = xDivLast + aCart * Ts #calulate target cart speed
+        f = -(xDiv * 6400) / 0.638175 #conversion based on measured distance per pulse
+        
+        #convert frequency to timer top value
+        if f > 2 or f < -2:
+            conversion = (0.5/f)/(1.0/250000.0)
+            pulses = conversion
+        elif f >= 0:
+            pulses = 65535
+        elif f < 0:
+            pulses = -65535
+            
+        #send timer value to arduino
+        arduino.reset_output_buffer()
+        #arrange as a 32 bit signed integer for transmission
+        sendPulses = struct.pack('<i', int(pulses))
+        arduino.write(sendPulses) #send top value to Arduino
+        
+        x = positionRead() #read position from arduino
+        correction = correction + x/50 #correct correction value slightly
+        
+        
+        
+
+#this section kills the program
+except KeyboardInterrupt: # to end program use ctrl c
+    print("\nControl loop stopped\n")
+    arduino.write(0xFFFFFFFF) #send stop command to Arduino
+    time.sleep(0.05) #wait 50ms
+    arduino.close() #ends connection between devices
+    sys.exit()
