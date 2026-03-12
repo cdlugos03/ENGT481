@@ -5,15 +5,6 @@ import serial
 import time
 import struct
 
-#angle corrections
-downVal = 11078 - 8192
-if downVal > 8192:
-    correction = downVal - 8192
-elif downVal == 8192:
-    correction = 0
-else:
-    correction = downVal + 8192
-
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
 arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=0.003) #initiate communication with the arduino
@@ -49,16 +40,16 @@ try:
         else:
             angle1, angle2, angle3 = struct.unpack('>HHH', line)
             #convert positionRaw to meters and angleRaw to radians
-            print(angle1)
-            angle1 = angle1 - correction
-            theta = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
+            print(angle1, angle2)
+#             angle1 = angle1 - correction
+#             theta = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
 #             print(angle1, angle2, angle3)
-            print(theta)
+#             print(theta)
         esp32.reset_input_buffer()
         
         
         #Frequency sweep
-#         time.sleep(0.0005) # wait 5ms
+#         time.sleep(0.0005) # wait 5ms, for use without ESP32 connected
         
         f = f + 20*fDir #increment f
         
@@ -66,21 +57,7 @@ try:
             fDir = -1
         elif f < -12000:
             fDir = 1
-
-        
-#         print("pos:", x)
-#         print("angle:", angleRaw)
-
-#         currentTime = int(time.time() * 1000)
-# 
-#         if len(line) != 4:
-#             print("values dropped")
-#             print(currentTime)
-#         else:
-#             message = struct.unpack('>i', line)[0]
-#         
-#         print(message)
-#         print(currentTime)
+            
 
         #convert frequency to timer top value
         if f > 2 or f < -2:

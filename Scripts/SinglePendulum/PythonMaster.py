@@ -68,15 +68,23 @@ Ts = 1/200
 
 #actual system values
 length = 0.25
-mweight = 0.022 #weight of pendulum weight
+mweight = 0.03 #weight of pendulum weight
 mrod = 0.072 #weight of pendulum arm
-lval = 0.16 #(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)
+lval = 0.185#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
+Ival = 0.0006772 #((mweight + (mrod/3))*lval**2) #rotational inertia
+m1val = 0.151#mweight + mrod #in kg
+
+#actual system values
+# length = 0.25
+# mweight = 0.031 #weight of pendulum weight
+# mrod = 0.072 #weight of pendulum arm
+# lval = 0.16 #(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)
 T_dragVal = 0.01 #pendulum drag force
-Ival = ((mweight + (mrod/3))*lval**2) #rotational inertia
+# Ival = ((mweight + (mrod/3))*length**2) #rotational inertia
 mcartVal = 0.969 #in kg
 B_cart_dragVal = 0.5 #drag coefficient
 gval = 9.81 #gravitational constant
-m1val = mweight + mrod #in kg
+# m1val = mweight + mrod #in kg
 #substitutions
 vals = {m1:m1val,mcart:mcartVal,l:lval,g:gval,I:Ival,T_drag:T_dragVal,B_cart_drag:B_cart_dragVal}
 
@@ -177,7 +185,7 @@ YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 #     correction = 0
 # else:
 #     correction = downVal + 8192
-correction = 10684
+correction = 12812
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
