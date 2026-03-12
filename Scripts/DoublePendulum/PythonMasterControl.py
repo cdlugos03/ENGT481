@@ -34,7 +34,6 @@ def load_control_data(filename):
         if match:
             raw_text = match.group(1)
             
-            # --- FIX 1: Remove source tags, NOT spaces ---
             clean_text = re.sub(r'\*', '', raw_text) 
             
             # Remove brackets and replace newlines with spaces to keep numbers separate
@@ -63,7 +62,7 @@ def load_control_data(filename):
 # Usage
 data = load_control_data(file_path)
 
-# --- FIX 2: Corrected variable mapping (Kd should be Kd, Ld should be Ld) ---
+# --- Variable data assignment --- #
 A = data['A'] 
 B = data['B'] 
 C = data['C']
@@ -189,4 +188,5 @@ except KeyboardInterrupt: # to end program use ctrl c
     arduino.write(0xFFFFFFFF) #send stop command to Arduino
     time.sleep(0.05) #wait 50ms
     arduino.close() #ends connection between devices
+
     sys.exit()
