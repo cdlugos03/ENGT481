@@ -62,7 +62,7 @@ Ts = 1/200
 
 #actual system values
 length = 0.25
-mweight = 0.03 #weight of pendulum weight
+mweight = 0.022 #weight of pendulum weight
 mrod = 0.072 #weight of pendulum arm
 lval = 0.16#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
 Ival = ((mweight + (mrod/3))*lval**2) #rotational inertia
@@ -167,9 +167,9 @@ ssDisc = ctrl.c2d(ssCont, Ts)
 #-----TUNING VALUES-----#
 #calculate lqr and kalman filter values
 #K, S, E = ctrl.lqr(A, B, sp.diag(10,2,1,1), 0.5)
-Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(8,1,8,1,8,0.5), 1)
+Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(5,5,5,5,5,5), 1)
 #QN and RN are multiplied/divided by Ts to discretize them. MATLAB does this internally
-Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, Ts*sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), (0.01/Ts)*sp.diag(1,1,1))
+Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, Ts*sp.diag(0.5,0.5,0.5,0.5,0.5,0.5), (0.01/Ts)*sp.diag(1,1,1))
 
 
 
@@ -195,14 +195,14 @@ Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
-downVal = 10675 - 8192 #for pendulum 1
-if downVal > 8192:
-    correction = downVal - 8192
-elif downVal == 8192:
-    correction = 0
-else:
-    correction = downVal + 8192
-
+# downVal = 10675 - 8192 #for pendulum 1
+# if downVal > 8192:
+#     correction = downVal - 8192
+# elif downVal == 8192:
+#     correction = 0
+# else:
+#     correction = downVal + 8192
+correction = 10684
 correction2 = 10500 #for pendulum 2 PLACEHOLDER VALUE, MAKE SURE TO CHANGE
 
 #initialize serial
@@ -281,7 +281,8 @@ try:
         arduino.write(sendPulses) #send top value to Arduino
         
         x = positionRead() #read position from arduino
-        correction = correction + x/50 #correct correction value slightly
+        
+#         correction = correction + x/50 #correct correction value slightly
         
         
         

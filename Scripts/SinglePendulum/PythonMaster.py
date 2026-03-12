@@ -68,9 +68,9 @@ Ts = 1/200
 
 #actual system values
 length = 0.25
-mweight = 0.03 #weight of pendulum weight
+mweight = 0.022 #weight of pendulum weight
 mrod = 0.072 #weight of pendulum arm
-lval = 0.16#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
+lval = 0.16 #(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)
 T_dragVal = 0.01 #pendulum drag force
 Ival = ((mweight + (mrod/3))*lval**2) #rotational inertia
 mcartVal = 0.969 #in kg
@@ -144,7 +144,7 @@ ssDisc = ctrl.c2d(ssCont, Ts)
 # Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(10,1,6,0.5), 1)
 Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(5,5,5,5), 1)
 #QN and RN are multiplied/divided by Ts to discretize them. MATLAB does this internally
-Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1), ssDisc.C, Ts*sp.diag(0.2,0.001,0.2,0.001), (0.01/Ts)*sp.diag(1,1))
+Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1), ssDisc.C, Ts*sp.diag(0.5,0.5,0.5,0.5), (0.01/Ts)*sp.diag(1,1))
 
 
 
@@ -177,7 +177,7 @@ YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 #     correction = 0
 # else:
 #     correction = downVal + 8192
-correction = 10685
+correction = 10684
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -218,7 +218,7 @@ try:
 
         theta1 = angleRead(correction)#read angle
 #         #TRY TO REMOVE THIS!
-        theta1 = theta1 - np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center
+#         theta1 = theta1 - np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center
 
         #load measurements into matrix (using position from last loop)
         Ymeas = np.array([[theta1], [x]])
@@ -255,8 +255,9 @@ try:
         arduino.write(sendPulses) #send top value to Arduino
         
         x = positionRead() #read position from arduino
-#         correction = correction + x/50 #correct correction value slightly
         
+        #CODE FOR ENCODER TUNING
+#         correction = correction + x/50 #correct correction value slightly
 #         print(correction)
         
         
