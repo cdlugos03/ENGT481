@@ -72,121 +72,121 @@ Kd = data['Kd']
 Ld = data['Ld']
 
 print("Successfully loaded Matrix A with shape:", A.shape)
-print(A)
+# print(A)
 
-# #-----CONTROL CODE-------#
-# line = 0x00000000
-# positionRaw = 0x0000
-# angleRaw = 0x0000
-# x = 0 #cart position
-# theta = 0 #pendulum angle
-# xDiv = 0 #cart velocity
-# f = 0
-# conversion = 0
-# pulses = 0
-# #thetaDiv = 0
-# u = np.array([[0.0]]) #control force
-# Ymeas = np.array([[0], [0]]) #measured states (no thetaDiv)
-# Yest = np.array([[0], [0], [0], [0]]) #estimated states
-# Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
-# YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
+#-----CONTROL CODE-------#
+line = 0x00000000
+positionRaw = 0x0000
+angleRaw = 0x0000
+x = 0 #cart position
+theta = 0 #pendulum angle
+xDiv = 0 #cart velocity
+f = 0
+conversion = 0
+pulses = 0
+#thetaDiv = 0
+u = np.array([[0.0]]) #control force
+Ymeas = np.array([[0], [0]]) #measured states (no thetaDiv)
+Yest = np.array([[0], [0], [0], [0]]) #estimated states
+Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
+YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 
-# #angle corrections
-# downVal = 10675 - 8192 #for pendulum 1
-# if downVal > 8192:
-#     correction = downVal - 8192
-# elif downVal == 8192:
-#     correction = 0
-# else:
-#     correction = downVal + 8192
+#angle corrections
+downVal = 10675 - 8192 #for pendulum 1
+if downVal > 8192:
+    correction = downVal - 8192
+elif downVal == 8192:
+    correction = 0
+else:
+    correction = downVal + 8192
 
-# correction2 = 10500 #for pendulum 2 PLACEHOLDER VALUE, MAKE SURE TO CHANGE
+correction2 = 10500 #for pendulum 2 PLACEHOLDER VALUE, MAKE SURE TO CHANGE
 
-# #initialize serial
-# esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
-# arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=0.003) #initiate communication with the arduino
-# time.sleep(3) #since code is restarted gives time for arduino
-# arduino.reset_input_buffer() #clears any old log before reading data
-# print("\nSerial started\n") #confirms this connection
-# line = 0x00000000
+#initialize serial
+esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
+arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=0.003) #initiate communication with the arduino
+time.sleep(3) #since code is restarted gives time for arduino
+arduino.reset_input_buffer() #clears any old log before reading data
+print("\nSerial started\n") #confirms this connection
+line = 0x00000000
 
-# time.sleep(0.1)
-
-
-# #get first angle measurements
-# #Read encoder values
-# theta1, theta2 = angleRead(correction, correction2)
+time.sleep(0.1)
 
 
-# #send low frequency control value to trigger arduino response
-# pulses = -65535
-# #arrange as a 32 bit signed integer for transmission
-# sendPulses = struct.pack('<i', int(pulses))
-# arduino.write(sendPulses) #send top value to Arduino
+#get first angle measurements
+#Read encoder values
+theta1, theta2 = angleRead(correction, correction2)
 
-# #get position from arduino
-# x = positionRead()
 
-# #store initial measurements in a matrix
-# Ylast = np.array([[theta1], [0], [theta2], [0], [x], [0]])
+#send low frequency control value to trigger arduino response
+pulses = -65535
+#arrange as a 32 bit signed integer for transmission
+sendPulses = struct.pack('<i', int(pulses))
+arduino.write(sendPulses) #send top value to Arduino
 
-# loop = 0 #loop counting variable
+#get position from arduino
+x = positionRead()
 
-# try:
-#     while True:
-#         if loop < 250: #only count until loop 251
-#             loop = loop + 1
+#store initial measurements in a matrix
+Ylast = np.array([[theta1], [0], [theta2], [0], [x], [0]])
+
+loop = 0 #loop counting variable
+
+try:
+    while True:
+        if loop < 250: #only count until loop 251
+            loop = loop + 1
         
-#         #calculate predicted states (Kalman filter part 1)
-#         Yest = ssDisc.A @ Ylast + ssDisc.B @ u
+        #calculate predicted states (Kalman filter part 1)
+        Yest = ssDisc.A @ Ylast + ssDisc.B @ u
 
-#         theta1, theta2 = angleRead(round(correction), correction2)#read angle
-# #         theta1 = theta1 - np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center
+        theta1, theta2 = angleRead(round(correction), correction2)#read angle
+#        theta1 = theta1 - np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center
         
-#         #load measurements into matrix (using position from last loop)
-#         Ymeas = np.array([[theta1], [theta2], [x]])
+        #load measurements into matrix (using position from last loop)
+        Ymeas = np.array([[theta1], [theta2], [x]])
         
-#         #Factor in measured states(Kalman filter part 2) (@ for matrix multiplication)
-#         YfinalEst = Yest + Ld @ (Ymeas - ssDisc.C @ Yest)
-#         Ylast = YfinalEst.copy() #store values for next loop
+        #Factor in measured states(Kalman filter part 2) (@ for matrix multiplication)
+        YfinalEst = Yest + Ld @ (Ymeas - ssDisc.C @ Yest)
+        Ylast = YfinalEst.copy() #store values for next loop
         
-#         #calculate control force
-#         u = -Kd @ YfinalEst
-#         if loop < 200: #ramp force up to full
-#             u = u*(loop/200.0)
-#         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
+        #calculate control force
+        u = -Kd @ YfinalEst
+        if loop < 200: #ramp force up to full
+            u = u*(loop/200.0)
+        #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
         
-#         #convert force to velocity and frequency (u.item takes value from 1x1 array)
-#         aCart = u.item() / mcartVal #calculate target cart acceleration
-#         xDivLast = xDiv #store last speed
-#         xDiv = xDivLast + aCart * Ts #calulate target cart speed
-#         f = -(xDiv * 6400) / 0.638175 #conversion based on measured distance per pulse
+        #convert force to velocity and frequency (u.item takes value from 1x1 array)
+        aCart = u.item() / mcartVal #calculate target cart acceleration
+        xDivLast = xDiv #store last speed
+        xDiv = xDivLast + aCart * Ts #calulate target cart speed
+        f = -(xDiv * 6400) / 0.638175 #conversion based on measured distance per pulse
         
-#         #convert frequency to timer top value
-#         if f > 2 or f < -2:
-#             conversion = (0.5/f)/(1.0/250000.0)
-#             pulses = conversion
-#         elif f >= 0:
-#             pulses = 65535
-#         elif f < 0:
-#             pulses = -65535
+        #convert frequency to timer top value
+        if f > 2 or f < -2:
+            conversion = (0.5/f)/(1.0/250000.0)
+            pulses = conversion
+        elif f >= 0:
+            pulses = 65535
+        elif f < 0:
+            pulses = -65535
             
-#         #send timer value to arduino
-#         arduino.reset_output_buffer()
-#         #arrange as a 32 bit signed integer for transmission
-#         sendPulses = struct.pack('<i', int(pulses))
-#         arduino.write(sendPulses) #send top value to Arduino
+        #send timer value to arduino
+        arduino.reset_output_buffer()
+        #arrange as a 32 bit signed integer for transmission
+        sendPulses = struct.pack('<i', int(pulses))
+        arduino.write(sendPulses) #send top value to Arduino
         
-#         x = positionRead() #read position from arduino
-#         correction = correction + x/50 #correct correction value slightly
+        x = positionRead() #read position from arduino
+        correction = correction + x/50 #correct correction value slightly
         
         
         
 
-# #this section kills the program
-# except KeyboardInterrupt: # to end program use ctrl c
-#     print("\nControl loop stopped\n")
-#     arduino.write(0xFFFFFFFF) #send stop command to Arduino
-#     time.sleep(0.05) #wait 50ms
-#     arduino.close() #ends connection between devices
-#     sys.exit()
+#this section kills the program
+except KeyboardInterrupt: # to end program use ctrl c
+    print("\nControl loop stopped\n")
+    arduino.write(0xFFFFFFFF) #send stop command to Arduino
+    time.sleep(0.05) #wait 50ms
+    arduino.close() #ends connection between devices
+    sys.exit()
