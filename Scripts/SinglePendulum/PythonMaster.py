@@ -185,7 +185,7 @@ YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 #     correction = 0
 # else:
 #     correction = downVal + 8192
-correction = 12812
+correction = 11166
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -265,8 +265,8 @@ try:
         x = positionRead() #read position from arduino
         
         #CODE FOR ENCODER TUNING
-#         correction = correction + x/50 #correct correction value slightly
-#         print(correction)
+        correction = correction + x/50 #correct correction value slightly
+        print(correction)
         
         
 

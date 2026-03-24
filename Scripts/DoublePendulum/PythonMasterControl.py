@@ -8,6 +8,64 @@ import sys
 import os
 import re
 
+angleLast = 0
+angleLast2 = 0
+
+def angleRead(cor, cor2):
+    global angleLast
+    global angleLast2
+    
+    #Read encoder values
+    line1 = bytearray()
+    while len(line1) < 6: #read until line is filled
+        line1.extend(esp32.read(6 - len(line1))) #reads response from Arduino
+    #convert stream to independent variables
+    if len(line1) != 6:
+        print("values dropped")
+        print(list(line1))
+        return 0
+    else:
+        angle1, angle2, angle3 = struct.unpack('>HHH', line1)
+        #convert positionRaw to meters and angleRaw to radians
+        angle1 = angle1 - cor
+        thetaRead = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
+        angle2 = angle2 - cor2
+        theta2Read = ((angle2*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
+        #             print(round(theta, 3))
+        #             print(round(correction))
+        
+        if angle1 > 17000:
+            angle1 = angleLast
+            print("FILTERED 1")
+        angleLast = angle1 #store angle for next loop
+        if angle2 > 17000:
+            angle2 = angleLast2
+            print("FILTERED 2")
+        angleLast2 = angle2 #store angle for next loop
+        
+        print(angle1, angle2)
+        esp32.reset_input_buffer()
+        return thetaRead, theta2Read
+ 
+def positionRead():
+    #wait for position value
+    line2 = bytearray()
+    while len(line2) < 2: #read until line is filled
+        line2.extend(arduino.read(2 - len(line2))) #reads response from Arduino
+    #convert stream to independent variables
+    if len(line2) != 2:
+        print("values dropped")
+        print(list(line2))
+        arduino.reset_input_buffer()
+        return 0
+    else:
+        positionRaw = struct.unpack('>h', line2)[0]
+        #convert positionRaw to meters and angleRaw to radians
+        x1 = (positionRaw*0.638175)/6400 #based on distance measurement (m) for 6400 steps
+#         print(positionRaw)
+        arduino.reset_input_buffer()
+        return x1
+
 print("program started")
 
 # Define the file path
@@ -69,6 +127,8 @@ C = data['C']
 D = data['D']
 Kd = data['Kd'] 
 Ld = data['Ld']
+mcartVal = 0.969
+Ts = 1/200
 
 print("Successfully loaded Matrix A with shape:", A.shape)
 # print(A)
@@ -91,7 +151,7 @@ Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
-downVal = 10675 - 8192 #for pendulum 1
+downVal = 11166 - 8192 #for pendulum 1
 if downVal > 8192:
     correction = downVal - 8192
 elif downVal == 8192:
@@ -99,7 +159,7 @@ elif downVal == 8192:
 else:
     correction = downVal + 8192
 
-correction2 = 8250 #for pendulum 2 PLACEHOLDER VALUE, MAKE SURE TO CHANGE
+correction2 = 7333 #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -137,7 +197,7 @@ try:
             loop = loop + 1
         
         #calculate predicted states (Kalman filter part 1)
-        Yest = ssDisc.A @ Ylast + ssDisc.B @ u
+        Yest = A @ Ylast + B @ u
 
         theta1, theta2 = angleRead(round(correction), correction2)#read angle
 #        theta1 = theta1 - np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center
@@ -146,13 +206,13 @@ try:
         Ymeas = np.array([[theta1], [theta2], [x]])
         
         #Factor in measured states(Kalman filter part 2) (@ for matrix multiplication)
-        YfinalEst = Yest + Ld @ (Ymeas - ssDisc.C @ Yest)
+        YfinalEst = Yest + Ld @ (Ymeas - C @ Yest)
         Ylast = YfinalEst.copy() #store values for next loop
         
         #calculate control force
         u = -Kd @ YfinalEst
-        if loop < 200: #ramp force up to full
-            u = u*(loop/200.0)
+        if loop < 50: #ramp force up to full
+            u = u*(loop/50.0)
         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
         
         #convert force to velocity and frequency (u.item takes value from 1x1 array)
@@ -160,6 +220,7 @@ try:
         xDivLast = xDiv #store last speed
         xDiv = xDivLast + aCart * Ts #calulate target cart speed
         f = -(xDiv * 6400) / 0.638175 #conversion based on measured distance per pulse
+        print(f)
         
         #convert frequency to timer top value
         if f > 2 or f < -2:
