@@ -99,7 +99,7 @@ elif downVal == 8192:
 else:
     correction = downVal + 8192
 
-correction2 = 10500 #for pendulum 2 PLACEHOLDER VALUE, MAKE SURE TO CHANGE
+correction2 = 8250 #for pendulum 2 PLACEHOLDER VALUE, MAKE SURE TO CHANGE
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
