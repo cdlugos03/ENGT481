@@ -26,14 +26,8 @@ def angleRead(cor, cor2):
         return 0
     else:
         angle1, angle2, angle3 = struct.unpack('>HHH', line1)
-        #convert positionRaw to meters and angleRaw to radians
-        angle1 = angle1 - cor
-        thetaRead = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
-        angle2 = angle2 - cor2
-        theta2Read = ((angle2*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
-        #             print(round(theta, 3))
-        #             print(round(correction))
         
+        #filter bad angles out
         if angle1 > 17000:
             angle1 = angleLast
             print("FILTERED 1")
@@ -42,6 +36,16 @@ def angleRead(cor, cor2):
             angle2 = angleLast2
             print("FILTERED 2")
         angleLast2 = angle2 #store angle for next loop
+        
+        #convert positionRaw to meters and angleRaw to radians
+        angle1 = angle1 - cor
+        angle2 = angle2 - cor2
+        
+        #convert to radians
+        thetaRead = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
+        theta2Read = ((angle2*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
+        #             print(round(theta, 3))
+        #             print(round(correction))
         
         print(angle1, angle2)
         esp32.reset_input_buffer()
