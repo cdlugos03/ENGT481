@@ -243,7 +243,7 @@ try:
         arduino.write(sendPulses) #send top value to Arduino
         
         x = positionRead() #read position from arduino
-        correction = correction + x/50 #correct correction value slightly
+#         correction = correction + x/50 #correct correction value slightly
         
         
         
