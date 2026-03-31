@@ -155,7 +155,7 @@ Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
-downVal = 14830 - 8192 #for pendulum 1
+downVal = 14786 - 8192 #for pendulum 1
 if downVal > 8192:
     correction = downVal - 8192
 elif downVal == 8192:
@@ -163,7 +163,7 @@ elif downVal == 8192:
 else:
     correction = downVal + 8192
 
-correction2 = 5924 #for pendulum 2
+correction2 = 6452 #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -215,9 +215,10 @@ try:
         
         #calculate control force
         u = -Kd @ YfinalEst
-        u = np.clip(u, a_min=-5, a_max=5)
-        if loop < 50: #ramp force up to full
-            u = u*(loop/50.0)
+        print(u)
+        u = np.clip(u, a_min=-7, a_max=7)
+#         if loop < 50: #ramp force up to full
+#             u = u*(loop/50.0)
         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
         
         #convert force to velocity and frequency (u.item takes value from 1x1 array)
