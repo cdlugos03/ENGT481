@@ -71,16 +71,16 @@ ArrayPrec = 5 #how many decimals are sent to the Text file
 length = 0.25
 mweight = 0.03 #weight of pendulum weight
 mrod = 0.072 #weight of pendulum arm
-lval = 0.185#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
+lval = 0.25 - 0.085#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
 Ival = 0.0006772 #((mweight + (mrod/3))*lval**2) #rotational inertia
-m1val = 0.151#mweight + mrod #in kg
+m1val = 0.204#mweight + mrod #in kg
 
 # length2 = 0.25 #probably not needed for anything
 length2 = 0.2
-mrod2 = 0.051
-mweight2 = 0.022
-mtotal2 = mrod2 + mweight2
-lval2 = 0.12 #length to center of mass
+#mrod2 = 0.051
+#mweight2 = 0.022
+mtotal2 = 0.09
+lval2 = 0.11 #length to center of mass
 Ival2 = 0.0003667 #((mweight2 + (mrod2/3))*length2**2) #rotational inertia
 
 mcartVal = 0.969 #in kg
