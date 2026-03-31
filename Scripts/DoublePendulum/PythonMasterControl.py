@@ -151,7 +151,7 @@ Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
-downVal = 11166 - 8192 #for pendulum 1
+downVal = 14830 - 8192 #for pendulum 1
 if downVal > 8192:
     correction = downVal - 8192
 elif downVal == 8192:
@@ -159,7 +159,7 @@ elif downVal == 8192:
 else:
     correction = downVal + 8192
 
-correction2 = 7333 #for pendulum 2
+correction2 = 5924 #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
