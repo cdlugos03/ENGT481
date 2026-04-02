@@ -177,7 +177,7 @@ ssDisc = ctrl.c2d(ssCont, Ts)
 #-----TUNING VALUES-----#
 #calculate lqr and kalman filter values
 #K, S, E = ctrl.lqr(A, B, sp.diag(10,2,1,1), 0.5)
-Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(8,1,8,1,8,0.5), 1)
+Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(8,1,7,1,5,0.5), 1)
 #QN and RN are multiplied/divided by Ts to discretize them. MATLAB does this internally
 Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, Ts*sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), (0.01/Ts)*sp.diag(1,1,1))
 
