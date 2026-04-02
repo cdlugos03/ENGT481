@@ -149,10 +149,10 @@ conversion = 0
 pulses = 0
 #thetaDiv = 0
 u = np.array([[0.0]]) #control force
-Ymeas = np.array([[0], [0]]) #measured states (no thetaDiv)
-Yest = np.array([[0], [0], [0], [0]]) #estimated states
-Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
-YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
+Ymeas = np.array([[0], [0], [0]]) #measured states (no thetaDiv)
+Yest = np.array([[0], [0], [0], [0], [0], [0]]) #estimated states
+Ylast = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
+YfinalEst = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
 downVal = 14786 - 8192 #for pendulum 1

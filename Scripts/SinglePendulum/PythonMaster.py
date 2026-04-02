@@ -226,7 +226,7 @@ try:
 
         theta1 = angleRead(correction)#read angle
 #         #TRY TO REMOVE THIS!
-#         theta1 = theta1 - np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center
+        theta1 = theta1 - np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center
 
         #load measurements into matrix (using position from last loop)
         Ymeas = np.array([[theta1], [x]])
@@ -245,6 +245,11 @@ try:
         aCart = u.item() / mcartVal #calculate target cart acceleration
         xDivLast = xDiv #store last speed
         xDiv = xDivLast + aCart * Ts #calulate target cart speed
+        
+        #TEST THIS TO SEE IF IT WORKS
+#         xDiv = YfinalEst[3].item() #pull velocity from kalman filter estimation
+        print(xDiv)
+        
         f = -(xDiv * 6400) / 0.638175 #conversion based on measured distance per pulse
         
         #convert frequency to timer top value
@@ -265,7 +270,7 @@ try:
         x = positionRead() #read position from arduino
         
         #CODE FOR ENCODER TUNING
-#         correction = correction + x/50 #correct correction value slightly
+        correction = correction + x/50 #correct correction value slightly
         print(correction)
         
         
