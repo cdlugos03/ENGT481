@@ -27,6 +27,10 @@ def angleRead(cor, cor2):
     else:
         angle1, angle2, angle3 = struct.unpack('>HHH', line1)
         
+        #convert positionRaw to meters and angleRaw to radians
+        angle1 = angle1 - cor
+        angle2 = angle2 - cor2
+        
         #filter bad angles out
         if angle1 > 17000:
             angle1 = angleLast
@@ -37,17 +41,13 @@ def angleRead(cor, cor2):
             print("FILTERED 2")
         angleLast2 = angle2 #store angle for next loop
         
-        #convert positionRaw to meters and angleRaw to radians
-        angle1 = angle1 - cor
-        angle2 = angle2 - cor2
-        
         #convert to radians
         thetaRead = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
         theta2Read = ((angle2*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
         #             print(round(theta, 3))
         #             print(round(correction))
         
-        print(angle1, angle2)
+#         print(angle1, angle2)
         esp32.reset_input_buffer()
         return thetaRead, theta2Read
  
@@ -155,7 +155,7 @@ Ylast = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
-downVal = 14786 - 8192 #for pendulum 1
+downVal = 4893.8 - 8192 #for pendulum 1
 if downVal > 8192:
     correction = downVal - 8192
 elif downVal == 8192:
@@ -163,7 +163,7 @@ elif downVal == 8192:
 else:
     correction = downVal + 8192
 
-correction2 = 6452 #for pendulum 2
+correction2 = 6891 #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -215,18 +215,22 @@ try:
         
         #calculate control force
         u = -Kd @ YfinalEst
-        print(u)
+#         print(round(u,1))
         u = np.clip(u, a_min=-7, a_max=7)
 #         if loop < 50: #ramp force up to full
 #             u = u*(loop/50.0)
         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
         
         #convert force to velocity and frequency (u.item takes value from 1x1 array)
-        aCart = u.item() / mcartVal #calculate target cart acceleration
-        xDivLast = xDiv #store last speed
-        xDiv = xDivLast + aCart * Ts #calulate target cart speed
+#         aCart = u.item() / mcartVal #calculate target cart acceleration
+#         xDivLast = xDiv #store last speed
+#         xDiv = xDivLast + aCart * Ts #calulate target cart speed
+        
+        xDiv = YfinalEst[5].item() #pull velocity from kalman filter estimation
+        print(round(xDiv,2))
+        
         f = -(xDiv * 6400) / 0.638175 #conversion based on measured distance per pulse
-        print(f)
+#         print(round(f))
         
         #convert frequency to timer top value
         if f > 2 or f < -2:
