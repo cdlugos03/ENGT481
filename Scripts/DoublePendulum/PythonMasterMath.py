@@ -6,52 +6,10 @@ import time
 import struct
 import sys
 import os
+import dill
 
 
 print("program started")
-
-
-def angleRead(cor, cor2):
-    #Read encoder values
-    line1 = bytearray()
-    while len(line1) < 6: #read until line is filled
-        line1.extend(esp32.read(6 - len(line1))) #reads response from Arduino
-    #convert stream to independent variables
-    if len(line1) != 6:
-        print("values dropped")
-        print(list(line1))
-        return 0
-    else:
-        angle1, angle2, angle3 = struct.unpack('>HHH', line1)
-        #convert positionRaw to meters and angleRaw to radians
-        angle1 = angle1 - cor
-        thetaRead = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
-        angle2 = angle2 - cor2
-        theta2Read = ((angle2*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
-        #             print(round(theta, 3))
-        #             print(round(correction))
-        print(thetaRead, angle1)
-        esp32.reset_input_buffer()
-        return thetaRead, theta2Read
- 
-def positionRead():
-    #wait for position value
-    line2 = bytearray()
-    while len(line2) < 2: #read until line is filled
-        line2.extend(arduino.read(2 - len(line2))) #reads response from Arduino
-    #convert stream to independent variables
-    if len(line2) != 2:
-        print("values dropped")
-        print(list(line2))
-        arduino.reset_input_buffer()
-        return 0
-    else:
-        positionRaw = struct.unpack('>h', line2)[0]
-        #convert positionRaw to meters and angleRaw to radians
-        x1 = (positionRaw*0.638175)/6400 #based on distance measurement (m) for 6400 steps
-#         print(positionRaw)
-        arduino.reset_input_buffer()
-        return x1
 
 #define symbols and symbol properties
 t,g,l,l2,m1,m2,mcart,B_cart_drag = sp.symbols('t g l l2 m1 m2 mcart B_cart_drag', positive = True)
@@ -59,6 +17,8 @@ theta = sp.Function('theta')(t) #define theta as a function of t
 theta2 = sp.Function('theta2')(t)
 x = sp.Function('x')(t) #define x as a function of t
 I,I2,F,T_drag = sp.symbols('I I2 F T_drag', real = True)
+
+print("symbols defined")
 
 #Sample Period
 Ts = 1/200
@@ -102,64 +62,89 @@ U = m1*g*l*sp.cos(theta) + m2*g*(l*sp.cos(theta) + l2*sp.cos(theta2))
 
 L = T - U
 
-EL_x = sp.Eq(
-    sp.diff(sp.diff(L, x.diff(t)), t) - sp.diff(L, x),
-    F - B_cart_drag * x.diff(t)
+# Check if we already have the symbolic model
+if not os.path.exists("symbolic_model.pkl"):
+    print("No .pkl, deriving equations ...")
+        
+    EL_x = sp.Eq(
+        sp.diff(sp.diff(L, x.diff(t)), t) - sp.diff(L, x),
+        F - B_cart_drag * x.diff(t)
     )
 
-EL_theta = sp.Eq(
-    sp.diff(sp.diff(L, theta.diff(t)), t) - sp.diff(L, theta),
-    -T_drag
+    EL_theta = sp.Eq(
+        sp.diff(sp.diff(L, theta.diff(t)), t) - sp.diff(L, theta),
+        -T_drag
     )
 
-EL_theta2 = sp.Eq(
-    sp.diff(sp.diff(L, theta2.diff(t)), t) - sp.diff(L, theta2),
-    -T_drag
+    EL_theta2 = sp.Eq(
+        sp.diff(sp.diff(L, theta2.diff(t)), t) - sp.diff(L, theta2),
+        -T_drag
     )
 
-#move everything to one side of the equation (set equal to 0)
-Eq1 = EL_x.lhs - EL_x.rhs
-Eq2 = EL_theta.lhs - EL_theta.rhs
-Eq3 = EL_theta2.lhs - EL_theta2.rhs
-#set up symbols for x2div and theta2div
-x2div,theta2div,theta22div = sp.symbols('x2div theta2div theta22div', real = True)
-#substitute in new symbols in place of accelerations
-Eq1 = Eq1.subs({sp.Derivative(x,t,2):x2div, sp.Derivative(theta,t,2):theta2div, sp.Derivative(theta2,t,2):theta22div})
-Eq2 = Eq2.subs({sp.Derivative(x,t,2):x2div, sp.Derivative(theta,t,2):theta2div, sp.Derivative(theta2,t,2):theta22div})
-Eq3 = Eq3.subs({sp.Derivative(x,t,2):x2div, sp.Derivative(theta,t,2):theta2div, sp.Derivative(theta2,t,2):theta22div})
+    print("Basic equations defined")
 
-#solve equations for accelerations
-Subs = sp.solve([Eq1, Eq2, Eq3], [x2div, theta2div, theta22div], simplify = True)
+    #move everything to one side of the equation (set equal to 0)
+    Eq1 = EL_x.lhs - EL_x.rhs
+    Eq2 = EL_theta.lhs - EL_theta.rhs
+    Eq3 = EL_theta2.lhs - EL_theta2.rhs
+    print("Equations set equal to 0")
+    #set up symbols for x2div and theta2div
+    x2div,theta2div,theta22div = sp.symbols('x2div theta2div theta22div', real = True)
+    #substitute in new symbols in place of accelerations
+    Eq1 = Eq1.subs({sp.Derivative(x,t,2):x2div, sp.Derivative(theta,t,2):theta2div, sp.Derivative(theta2,t,2):theta22div})
+    Eq2 = Eq2.subs({sp.Derivative(x,t,2):x2div, sp.Derivative(theta,t,2):theta2div, sp.Derivative(theta2,t,2):theta22div})
+    Eq3 = Eq3.subs({sp.Derivative(x,t,2):x2div, sp.Derivative(theta,t,2):theta2div, sp.Derivative(theta2,t,2):theta22div})
+    print("abstract symbols substituted in for 2nd derivatives")
 
-#substitute in symbols for each state
-Y1,Y2,Y3,Y4,Y5,Y6 = sp.symbols('Y1 Y2 Y3 Y4 Y5 Y6')
-StateSubs = {theta:Y1, sp.Derivative(theta,t):Y2, theta2:Y3, sp.Derivative(theta2,t):Y4, x:Y5, sp.Derivative(x,t):Y6}
-F1 = Subs[theta2div].subs(StateSubs)
-F2 = Subs[theta22div].subs(StateSubs)
-F3 = Subs[x2div].subs(StateSubs)
+    #solve equations for accelerations
+    Subs = sp.solve([Eq1, Eq2, Eq3], [x2div, theta2div, theta22div], simplify = True)
+    print("Equations solved for derivatives")
+    
+    #substitute in symbols for each state
+    Y1,Y2,Y3,Y4,Y5,Y6 = sp.symbols('Y1 Y2 Y3 Y4 Y5 Y6')
+    StateSubs = {theta:Y1, sp.Derivative(theta,t):Y2, theta2:Y3, sp.Derivative(theta2,t):Y4, x:Y5, sp.Derivative(x,t):Y6}
+    F1 = Subs[theta2div].subs(StateSubs)
+    F2 = Subs[theta22div].subs(StateSubs)
+    F3 = Subs[x2div].subs(StateSubs)
+    print("State symbols substituted in")
 
-#combine into a matrix (non-linear state space model), and create state matrix (Y)
-NonLinMod = sp.Matrix([Y2, F1, Y4, F2, Y6, F3])
-Y = sp.Matrix([Y1, Y2, Y3, Y4, Y5, Y6])
+    #combine into a matrix (non-linear state space model), and create state matrix (Y)
+    NonLinMod = sp.Matrix([Y2, F1, Y4, F2, Y6, F3])
+    Y = sp.Matrix([Y1, Y2, Y3, Y4, Y5, Y6])
 
-#linearize model
-A = NonLinMod.jacobian(Y)
-B = NonLinMod.diff(F)
+    print("Non-linear model created")
+
+    #linearize model
+    A = NonLinMod.jacobian(Y)
+    B = NonLinMod.diff(F)
+
+    print("linearization completed")
+
+    #Substitute in values
+    Equilibrium = {Y1:0,Y2:0,Y3:0,Y4:0,Y5:0,Y6:0} #all states are 0 at equilibrium
+    A = A.subs(vals).subs(Equilibrium)
+    B = B.subs(vals).subs(Equilibrium)
+
+    print("Values and equilibrium points substituted in")
+    
+    # Save the solve results and the Jacobians
+    with open("symbolic_model.pkl", "wb") as f:
+        dill.dump({'A_sym': A, 'B_sym': B, 'Y': Y, 'F': F}, f)
+else:
+    print("Loading stored data...")
+    with open("symbolic_model.pkl", "rb") as f:
+        data = dill.load(f)
+        A, B, Y, F = data['A_sym'], data['B_sym'], data['Y'], data['F']
+
 C = sp.Matrix([ #manual input
     [1, 0, 0, 0, 0, 0],
     [0, 0, 1, 0, 0, 0],
     [0, 0, 0, 0, 1, 0],])
 D = sp.Matrix([0, 0, 0]) #manual input
 
-#Substitute in values
-Equilibrium = {Y1:0,Y2:0,Y3:0,Y4:0,Y5:0,Y6:0} #all states are 0 at equilibrium
-A = A.subs(vals).subs(Equilibrium)
-B = B.subs(vals).subs(Equilibrium)
-
 #convert to a ss system, and discretize
 ssCont = ctrl.ss(A, B, C, D)
 ssDisc = ctrl.c2d(ssCont, Ts)
-
 
 # #Testing
 # # Debugging Block
@@ -177,10 +162,11 @@ ssDisc = ctrl.c2d(ssCont, Ts)
 #-----TUNING VALUES-----#
 #calculate lqr and kalman filter values
 #K, S, E = ctrl.lqr(A, B, sp.diag(10,2,1,1), 0.5)
-Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(8,1,7,1,5,0.5), 1)
+Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(5,1,4,1,3,1), 5)
+print("LQG gain matrix calculated")
 #QN and RN are multiplied/divided by Ts to discretize them. MATLAB does this internally
 Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, Ts*sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), (0.01/Ts)*sp.diag(1,1,1))
-
+print("Kalman matrices generated")
 
 
 # --- FINAL FILE OUTPUT SECTION ---
