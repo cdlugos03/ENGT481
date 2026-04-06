@@ -34,7 +34,7 @@ def angleRead(cor):
         thetaRead = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
         
         esp32.reset_input_buffer()
-        print("A:",angle1)
+#         print(round(angle1))
         return thetaRead
  
 def positionRead():
@@ -186,7 +186,7 @@ YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 #     correction = 0
 # else:
 #     correction = downVal + 8192
-correction = 4950
+correction = 4893.8
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -228,7 +228,7 @@ try:
 
         theta1 = angleRead(correction)#read angle
 #         #TRY TO REMOVE THIS!
-        theta1 = theta1 - np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center
+#         theta1 = theta1 - np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center
 
         #load measurements into matrix (using position from last loop)
         Ymeas = np.array([[theta1], [x]])
@@ -244,13 +244,13 @@ try:
         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
         
         #convert force to velocity and frequency (u.item takes value from 1x1 array)
-        aCart = u.item() / mcartVal #calculate target cart acceleration
-        xDivLast = xDiv #store last speed
-        xDiv = xDivLast + aCart * Ts #calulate target cart speed
+#         aCart = u.item() / mcartVal #calculate target cart acceleration
+#         xDivLast = xDiv #store last speed
+#         xDiv = xDivLast + aCart * Ts #calulate target cart speed
         
         #TEST THIS TO SEE IF IT WORKS
-#         xDiv = YfinalEst[3].item() #pull velocity from kalman filter estimation
-        print("V:", xDiv)
+        xDiv = YfinalEst[3].item() #pull velocity from kalman filter estimation
+        print(round(xDiv,2))
         
         f = -(xDiv * 6400) / 0.638175 #conversion based on measured distance per pulse
         
@@ -273,7 +273,7 @@ try:
         
         #CODE FOR ENCODER TUNING
 #         correction = correction + x/50 #correct correction value slightly
-        print("C:", correction)
+#         print(round(correction, 1))
         
         
 
