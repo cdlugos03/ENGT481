@@ -186,19 +186,19 @@ YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 #     correction = 0
 # else:
 #     correction = downVal + 8192
-correction = 4900
+correction = 4950
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
 arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=0.003) #initiate communication with the arduino
 time.sleep(3) #since code is restarted gives time for arduino
-arduino.reset_input_buffer() #clears any old logs before reading data
-esp32.reset_input_buffer()
 print("\nSerial started\n") #confirms this connection
 line = 0x00000000
 
 time.sleep(0.1)
 
+arduino.reset_input_buffer() #clears any old logs before reading data
+esp32.reset_input_buffer()
 
 #get first angle measurements
 #Read encoder values
