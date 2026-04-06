@@ -1,10 +1,7 @@
 import numpy as np
 import sympy as sp
 import control as ctrl
-import serial
 import time
-import struct
-import sys
 import os
 import dill
 
@@ -162,12 +159,16 @@ ssDisc = ctrl.c2d(ssCont, Ts)
 #-----TUNING VALUES-----#
 #calculate lqr and kalman filter values
 #K, S, E = ctrl.lqr(A, B, sp.diag(10,2,1,1), 0.5)
+start = time.time()
 Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(5,1,4,1,3,1), 5)
-print("LQG gain matrix calculated")
-#QN and RN are multiplied/divided by Ts to discretize them. MATLAB does this internally
-Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, Ts*sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), (0.01/Ts)*sp.diag(1,1,1))
-print("Kalman matrices generated")
+end = time.time()
+print("LQG gain matrix calculated", (end-start)*1000)
 
+#QN and RN are multiplied/divided by Ts to discretize them. MATLAB does this internally
+start = time.time()
+Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, Ts*sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), (0.01/Ts)*sp.diag(1,1,1))
+end = time.time()
+print("Kalman matrices generated", (end-start)*1000)
 
 # --- FINAL FILE OUTPUT SECTION ---
 try:
