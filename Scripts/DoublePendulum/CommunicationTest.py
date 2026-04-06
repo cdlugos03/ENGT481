@@ -32,6 +32,7 @@ try:
     while True:
         
         #Read encoder values
+        esp32.reset_input_buffer()
         line = bytearray()
         while len(line) < 6: #read until line is filled
             line.extend(esp32.read(6 - len(line))) #reads response from Arduino

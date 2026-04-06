@@ -23,17 +23,18 @@ def angleRead(cor):
     else:
         angle1, angle2, angle3 = struct.unpack('>HHH', line1)
         
-        if angle1 > 17000:
+        #convert positionRaw to meters and angleRaw to radians
+        angle1 = angle1 - cor
+        
+        if angle1 > 17000: 
             angle1 = angleLast
             print("FILTERED")
         angleLast = angle1 #store angle for next loop
         
-        #convert positionRaw to meters and angleRaw to radians
-        angle1 = angle1 - cor
         thetaRead = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
         
         esp32.reset_input_buffer()
-        print(angle1)
+        print("A:",angle1)
         return thetaRead
  
 def positionRead():
@@ -70,9 +71,9 @@ Ts = 1/200
 length = 0.25
 mweight = 0.03 #weight of pendulum weight
 mrod = 0.072 #weight of pendulum arm
-lval = 0.25 - 0.085#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
+lval = 0.25 - 0.085 #(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
 Ival = 0.001688 #((mweight + (mrod/3))*lval**2) #rotational inertia
-m1val = 0.204#mweight + mrod #in kg
+m1val = 0.204 #mweight + mrod #in kg
 
 #actual system values
 # length = 0.25
@@ -185,13 +186,14 @@ YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 #     correction = 0
 # else:
 #     correction = downVal + 8192
-correction = 14786
+correction = 4900
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
 arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=0.003) #initiate communication with the arduino
 time.sleep(3) #since code is restarted gives time for arduino
-arduino.reset_input_buffer() #clears any old log before reading data
+arduino.reset_input_buffer() #clears any old logs before reading data
+esp32.reset_input_buffer()
 print("\nSerial started\n") #confirms this connection
 line = 0x00000000
 
@@ -248,7 +250,7 @@ try:
         
         #TEST THIS TO SEE IF IT WORKS
 #         xDiv = YfinalEst[3].item() #pull velocity from kalman filter estimation
-        print(xDiv)
+        print("V:", xDiv)
         
         f = -(xDiv * 6400) / 0.638175 #conversion based on measured distance per pulse
         
@@ -270,8 +272,8 @@ try:
         x = positionRead() #read position from arduino
         
         #CODE FOR ENCODER TUNING
-        correction = correction + x/50 #correct correction value slightly
-        print(correction)
+#         correction = correction + x/50 #correct correction value slightly
+        print("C:", correction)
         
         
 
