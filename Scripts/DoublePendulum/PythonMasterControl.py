@@ -220,7 +220,7 @@ try:
         
         #calculate control force
         u = -Kd @ YfinalEst
-#         print(round(u,1))
+        print(round(u.item(),1))
         u = np.clip(u, a_min=-5, a_max=5)
 #         if loop < 50: #ramp force up to full
 #             u = u*(loop/50.0)
@@ -233,7 +233,7 @@ try:
         
 #         xDiv = YfinalEst[5].item() #pull velocity from kalman filter estimation
         xDiv = np.clip(xDiv, a_min=-5, a_max=5)
-        print(round(xDiv,2))
+#         print(round(xDiv,2))
         
         f = -(xDiv * 6400) / 0.638175 #conversion based on measured distance per pulse
 #         print(round(f))
