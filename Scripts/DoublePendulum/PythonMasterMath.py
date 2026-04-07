@@ -163,7 +163,7 @@ ssDisc = ctrl.c2d(ssCont, Ts)
 #calculate lqr and kalman filter values
 #K, S, E = ctrl.lqr(A, B, sp.diag(10,2,1,1), 0.5)
 start = time.time()
-Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(5,1,4,1,3,1), 5)
+Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(5,1,4,1,3,1), 1)
 end = time.time()
 print("LQG gain matrix calculated", (end-start)*1000)
 
@@ -187,16 +187,16 @@ try:
         f.write("=== CONTROL SYSTEM DESIGN DATA ===\n\n")
         
         f.write("--- Matrix A (Linearized) ---\n")
-        f.write(np.array2string(np.array(A.tolist(), dtype=float), precision=ArrayPrec) + "\n\n")
+        f.write(np.array2string(np.array(ssDisc.A.tolist(), dtype=float), precision=ArrayPrec) + "\n\n")
         
         f.write("--- Matrix B ---\n")
-        f.write(np.array2string(np.array(B.tolist(), dtype=float), precision=ArrayPrec) + "\n\n")
+        f.write(np.array2string(np.array(ssDisc.B.tolist(), dtype=float), precision=ArrayPrec) + "\n\n")
 
         f.write("--- Matrix C ---\n")
-        f.write(np.array2string(np.array(C.tolist(), dtype=float), precision=ArrayPrec) + "\n\n")
+        f.write(np.array2string(np.array(ssDisc.C.tolist(), dtype=float), precision=ArrayPrec) + "\n\n")
 
         f.write("--- Matrix D ---\n")
-        f.write(np.array2string(np.array(D.tolist(), dtype=float), precision=ArrayPrec) + "\n\n")
+        f.write(np.array2string(np.array(ssDisc.D.tolist(), dtype=float), precision=ArrayPrec) + "\n\n")
         
         f.write("--- LQR Gain (Kd) ---\n")
         f.write(np.array2string(np.array(Kd), precision=ArrayPrec) + "\n\n")

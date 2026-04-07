@@ -42,10 +42,13 @@ def angleRead(cor, cor2):
         angleLast2 = angle2 #store angle for next loop
         
         #convert to radians
-        thetaRead = ((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
-        theta2Read = ((angle2*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
+        thetaRead = -((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
+        theta2Read = -((angle2*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
         #             print(round(theta, 3))
         #             print(round(correction))
+        
+        #transform to fit equations
+        theta2Read = theta2Read + thetaRead
         
 #         print(angle1, angle2)
         esp32.reset_input_buffer()
@@ -163,9 +166,9 @@ YfinalEst = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 # else:
 #     correction = downVal + 8192
 
-correction = 4872
+correction = 4862
 
-correction2 = 6456 #for pendulum 2
+correction2 = 4412 #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -224,11 +227,11 @@ try:
         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
         
         #convert force to velocity and frequency (u.item takes value from 1x1 array)
-#         aCart = u.item() / mcartVal #calculate target cart acceleration
-#         xDivLast = xDiv #store last speed
-#         xDiv = xDivLast + aCart * Ts #calulate target cart speed
+        aCart = u.item() / mcartVal #calculate target cart acceleration
+        xDivLast = xDiv #store last speed
+        xDiv = xDivLast + aCart * Ts #calulate target cart speed
         
-        xDiv = YfinalEst[5].item() #pull velocity from kalman filter estimation
+#         xDiv = YfinalEst[5].item() #pull velocity from kalman filter estimation
         xDiv = np.clip(xDiv, a_min=-5, a_max=5)
         print(round(xDiv,2))
         
