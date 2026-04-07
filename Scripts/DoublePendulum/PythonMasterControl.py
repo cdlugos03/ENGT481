@@ -155,15 +155,17 @@ Ylast = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
-downVal = 4893.8 - 8192 #for pendulum 1
-if downVal > 8192:
-    correction = downVal - 8192
-elif downVal == 8192:
-    correction = 0
-else:
-    correction = downVal + 8192
+# downVal = 4872 - 8192 #for pendulum 1
+# if downVal > 8192:
+#     correction = downVal - 8192
+# elif downVal == 8192:
+#     correction = 0
+# else:
+#     correction = downVal + 8192
 
-correction2 = 6891 #for pendulum 2
+correction = 4872
+
+correction2 = 6456 #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -216,7 +218,7 @@ try:
         #calculate control force
         u = -Kd @ YfinalEst
 #         print(round(u,1))
-        u = np.clip(u, a_min=-6, a_max=6)
+        u = np.clip(u, a_min=-5, a_max=5)
 #         if loop < 50: #ramp force up to full
 #             u = u*(loop/50.0)
         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
@@ -227,6 +229,7 @@ try:
 #         xDiv = xDivLast + aCart * Ts #calulate target cart speed
         
         xDiv = YfinalEst[5].item() #pull velocity from kalman filter estimation
+        xDiv = np.clip(xDiv, a_min=-5, a_max=5)
         print(round(xDiv,2))
         
         f = -(xDiv * 6400) / 0.638175 #conversion based on measured distance per pulse
