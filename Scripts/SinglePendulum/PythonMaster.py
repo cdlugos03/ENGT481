@@ -153,7 +153,8 @@ ssDisc = ctrl.c2d(ssCont, Ts)
 # Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(10,1,6,0.5), 1)
 Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(5,5,5,5), 1)
 #QN and RN are multiplied/divided by Ts to discretize them. MATLAB does this internally
-Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1), ssDisc.C, Ts*sp.diag(0.5,0.5,0.5,0.5), (0.01/Ts)*sp.diag(1,1))
+# Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1), ssDisc.C, Ts*sp.diag(0.5,0.5,0.5,0.5), (0.01/Ts)*sp.diag(1,1))
+Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1), ssDisc.C, sp.diag(0.5,0.5,0.5,0.5), (0.01)*sp.diag(1,1))
 
 
 
@@ -186,7 +187,7 @@ YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 #     correction = 0
 # else:
 #     correction = downVal + 8192
-correction = 4893.8
+correction = 4872
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -250,7 +251,7 @@ try:
         
         #TEST THIS TO SEE IF IT WORKS
         xDiv = YfinalEst[3].item() #pull velocity from kalman filter estimation
-        print(round(xDiv,2))
+#         print(round(xDiv,2))
         
         f = -(xDiv * 6400) / 0.638175 #conversion based on measured distance per pulse
         

@@ -166,7 +166,8 @@ print("LQG gain matrix calculated", (end-start)*1000)
 
 #QN and RN are multiplied/divided by Ts to discretize them. MATLAB does this internally
 start = time.time()
-Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, Ts*sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), (0.01/Ts)*sp.diag(1,1,1))
+# Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, Ts*sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), (0.01/Ts)*sp.diag(1,1,1))
+Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), 0.01*sp.diag(1,1,1))
 end = time.time()
 print("Kalman matrices generated", (end-start)*1000)
 

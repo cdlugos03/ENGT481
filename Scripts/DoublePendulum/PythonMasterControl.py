@@ -216,7 +216,7 @@ try:
         #calculate control force
         u = -Kd @ YfinalEst
 #         print(round(u,1))
-        u = np.clip(u, a_min=-7, a_max=7)
+        u = np.clip(u, a_min=-6, a_max=6)
 #         if loop < 50: #ramp force up to full
 #             u = u*(loop/50.0)
         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
