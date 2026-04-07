@@ -9,7 +9,7 @@ import dill
 print("program started")
 
 #define symbols and symbol properties
-t,g,l,l2,m1,m2,mcart,B_cart_drag = sp.symbols('t g l l2 m1 m2 mcart B_cart_drag', positive = True)
+t,g,l,lFull,l2,m1,m2,mcart,B_cart_drag = sp.symbols('t g l lFull l2 m1 m2 mcart B_cart_drag', positive = True)
 theta = sp.Function('theta')(t) #define theta as a function of t
 theta2 = sp.Function('theta2')(t)
 x = sp.Function('x')(t) #define x as a function of t
@@ -28,7 +28,7 @@ ArrayPrec = 5 #how many decimals are sent to the Text file
 length = 0.25
 mweight = 0.03 #weight of pendulum weight
 mrod = 0.072 #weight of pendulum arm
-lval = 0.25 - 0.085#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
+lval = 0.25 - 0.085#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)
 Ival = 0.001688 #((mweight + (mrod/3))*lval**2) #rotational inertia
 m1val = 0.204#mweight + mrod #in kg
 
@@ -43,19 +43,22 @@ Ival2 = 0.00075978 #((mweight2 + (mrod2/3))*length2**2) #rotational inertia
 mcartVal = 0.969 #in kg
 B_cart_dragVal = 0.5 #drag coefficient
 gval = 9.81 #gravitational constant
-T_dragVal = 0.01 #rotational drag force
+T_dragVal = 0.0 #rotational drag force
 
 #substitutions
-vals = {m1:m1val,m2:mtotal2,mcart:mcartVal,l:lval,l2:lval2,g:gval,I:Ival,I2:Ival2,T_drag:T_dragVal,B_cart_drag:B_cart_dragVal}
+vals = {m1:m1val,m2:mtotal2,mcart:mcartVal,l:lval,lFull:length,l2:lval2,g:gval,I:Ival,I2:Ival2,T_drag:T_dragVal,B_cart_drag:B_cart_dragVal}
 
 #define equations
 T =	(
-    (1/2)*(mcart + m1 + m2)*x.diff(t)**2 + (1/2)*(m1*l**2 + m2*l**2 + I)*theta.diff(t)**2
-    + (1/2)*(m2*l2**2 + I2)*theta2.diff(t)**2 + (m1*l + m2*l)*x.diff(t)*theta.diff(t)*sp.cos(theta)
-    + m2*l2*x.diff(t)*theta2.diff(t)*sp.cos(theta2) + m2*l*l2*sp.cos(theta-theta2)*theta.diff(t)*theta2.diff(t)
+    (1/2)*(mcart + m1 + m2)*x.diff(t)**2
+    + (1/2)*(m1*l**2 + m2*lFull**2 + I)*theta.diff(t)**2
+    + (1/2)*(m2*l2**2 + I2)*theta2.diff(t)**2
+    + (m1*l + m2*lFull)*x.diff(t)*theta.diff(t)*sp.cos(theta)
+    + m2*l2*x.diff(t)*theta2.diff(t)*sp.cos(theta2)
+    + (m2*lFull*l2)*sp.cos(theta-theta2)*theta.diff(t)*theta2.diff(t)
     )
 
-U = m1*g*l*sp.cos(theta) + m2*g*(l*sp.cos(theta) + l2*sp.cos(theta2))
+U = m1*g*l*sp.cos(theta) + m2*g*(lFull*sp.cos(theta) + l2*sp.cos(theta2))
 
 L = T - U
 
