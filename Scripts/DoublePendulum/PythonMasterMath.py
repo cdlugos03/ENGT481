@@ -28,19 +28,19 @@ ArrayPrec = 5 #how many decimals are sent to the Text file
 length = 0.25
 mweight = 0.03 #weight of pendulum weight
 mrod = 0.072 #weight of pendulum arm
-lval = 0.25 - 0.085#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)
-Ival = 0.001688 #((mweight + (mrod/3))*lval**2) #rotational inertia
-m1val = 0.204#mweight + mrod #in kg
+lval = 0.095#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)
+Ival = 0.0016941526 #((mweight + (mrod/3))*lval**2) #rotational inertia   0.001629 about shaft
+m1val = 0.202 #mweight + mrod #in kg
 
 # length2 = 0.25 #probably not needed for anything
 length2 = 0.2
 #mrod2 = 0.051
 #mweight2 = 0.022
-mtotal2 = 0.09
-lval2 = 0.11 #length to center of mass
-Ival2 = 0.00075978 #((mweight2 + (mrod2/3))*length2**2) #rotational inertia
+mtotal2 = 0.148
+lval2 = 0.065 #length to center of mass
+Ival2 = 0.001142925 #((mweight2 + (mrod2/3))*length2**2) #rotational inertia
 
-mcartVal = 0.969 #in kg
+mcartVal = 0.969 - 0.059 #in kg
 B_cart_dragVal = 0.5 #drag coefficient
 gval = 9.81 #gravitational constant
 T_dragVal = 0.0 #rotational drag force

@@ -47,7 +47,7 @@ def angleRead(cor, cor2):
         #             print(round(theta, 3))
         #             print(round(correction))
         
-        #transform to fit equations
+        #add angles to fit equations
         theta2Read = theta2Read + thetaRead
         
 #         print(angle1, angle2)
@@ -166,9 +166,9 @@ YfinalEst = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 # else:
 #     correction = downVal + 8192
 
-correction = 4862
+correction = 6734
 
-correction2 = 4412 #for pendulum 2
+correction2 = 5499 #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -220,7 +220,7 @@ try:
         
         #calculate control force
         u = -Kd @ YfinalEst
-        print(round(u.item(),1))
+#         print(round(u.item(),1))
         u = np.clip(u, a_min=-5, a_max=5)
 #         if loop < 50: #ramp force up to full
 #             u = u*(loop/50.0)
