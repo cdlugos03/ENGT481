@@ -134,7 +134,7 @@ C = data['C']
 D = data['D']
 Kd = data['Kd'] 
 Ld = data['Ld']
-mcartVal = 0.969
+mcartVal = 0.969 - 0.059
 Ts = 1/200
 
 print("Successfully loaded Matrix A with shape:", A.shape)
