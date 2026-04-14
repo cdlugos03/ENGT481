@@ -25,19 +25,16 @@ ArrayPrec = 5 #how many decimals are sent to the Text file
 #0.5N rolling friction
 
 #actual system values
-length = 0.25
+length = 0.25 #total length
 mweight = 0.03 #weight of pendulum weight
 mrod = 0.072 #weight of pendulum arm
-lval = 0.095#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (to center of mass)
+lval = 0.0935#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (to center of mass)
 Ival = 0.00183677026 #((mweight + (mrod/3))*lval**2) #rotational inertia
 m1val = 0.202 #mweight + mrod #in kg
 
-# length2 = 0.25 #probably not needed for anything
-length2 = 0.2
-#mrod2 = 0.051
-#mweight2 = 0.022
-mtotal2 = 0.148
-lval2 = 0.065 #length to center of mass
+length2 = 0.2 #total length
+mtotal2 = 0.148 #pendulum mass
+lval2 = 0.068 #length to center of mass
 Ival2 = 0.00094102171 #((mweight2 + (mrod2/3))*length2**2) #rotational inertia
 
 mcartVal = 0.969 - 0.059 #in kg
