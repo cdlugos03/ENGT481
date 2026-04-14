@@ -77,7 +77,7 @@ print("program started")
 
 # Define the file path
 script_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(script_dir, "control_matricies.txt")
+file_path = os.path.join(script_dir, "control_matrices.txt")
 
 def load_control_data(filename):
     with open(filename, 'r') as f:
@@ -166,9 +166,9 @@ YfinalEst = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 # else:
 #     correction = downVal + 8192
 
-correction = 4594
+correction = 4967
 
-correction2 = 5137 #for pendulum 2
+correction2 = 7485 #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -184,7 +184,6 @@ time.sleep(0.1)
 #get first angle measurements
 #Read encoder values
 theta1, theta2 = angleRead(correction, correction2)
-
 
 #send low frequency control value to trigger arduino response
 pulses = -65535
@@ -227,13 +226,18 @@ try:
         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
         
         #convert force to velocity and frequency (u.item takes value from 1x1 array)
-        aCart = u.item() / mcartVal #calculate target cart acceleration
-        xDivLast = xDiv #store last speed
-        xDiv = xDivLast + aCart * Ts #calulate target cart speed
+#         aCart = u.item() / mcartVal #calculate target cart acceleration
+#         xDivLast = xDiv #store last speed
+#         xDiv = xDivLast + aCart * Ts #calulate target cart speed
         
-#         xDiv = YfinalEst[5].item() #pull velocity from kalman filter estimation
+        xDiv = YfinalEst[5].item() #pull velocity from kalman filter estimation
+        
         xDiv = np.clip(xDiv, a_min=-5, a_max=5)
 #         print(round(xDiv,2))
+
+        if abs(theta1) > 1:
+            xDiv = 0.0;
+            break
         
         f = -(xDiv * 6400) / 0.638175 #conversion based on measured distance per pulse
 #         print(round(f))
