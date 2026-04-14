@@ -5,7 +5,7 @@ import serial
 import time
 import struct
 
-#2992, 8250
+
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -54,12 +54,12 @@ try:
         #Frequency sweep
 #         time.sleep(0.0005) # wait 5ms, for use without ESP32 connected
         
-        f = f + 20*fDir #increment f
+        #f = f + 20*fDir #increment f
         
-        if f > 500: #toggle direction
-            fDir = -1
-        elif f < -500:
-            fDir = 1
+       # if f > 500: #toggle direction
+          #  fDir = -1
+       # elif f < -500:
+      #      fDir = 1
             
 
         #convert frequency to timer top value

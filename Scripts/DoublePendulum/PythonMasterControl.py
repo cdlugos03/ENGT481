@@ -77,7 +77,7 @@ print("program started")
 
 # Define the file path
 script_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(script_dir, "control_matrices.txt")
+file_path = os.path.join(script_dir, "control_matricies.txt")
 
 def load_control_data(filename):
     with open(filename, 'r') as f:
@@ -166,9 +166,9 @@ YfinalEst = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 # else:
 #     correction = downVal + 8192
 
-correction = 6734
+correction = 4594
 
-correction2 = 5490 #for pendulum 2
+correction2 = 5137 #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -220,7 +220,7 @@ try:
         
         #calculate control force
         u = -Kd @ YfinalEst
-#         print(round(u.item(),1))
+        print(round(u.item(),1))
         u = np.clip(u, a_min=-5, a_max=5)
 #         if loop < 50: #ramp force up to full
 #             u = u*(loop/50.0)
