@@ -38,7 +38,7 @@ lval2 = 0.068 #length to center of mass
 Ival2 = 0.00094102171 #((mweight2 + (mrod2/3))*length2**2) #rotational inertia
 
 mcartVal = 0.969 - 0.059 #in kg
-B_cart_dragVal = 0.5 #drag coefficient
+B_cart_dragVal = 0.0 #drag coefficient
 gval = 9.81 #gravitational constant
 T_dragVal = 0.0 #rotational drag force
 
