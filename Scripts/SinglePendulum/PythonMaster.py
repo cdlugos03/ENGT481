@@ -63,7 +63,7 @@ x = sp.Function('x')(t) #define x as a function of t
 I,H,V,F,T_drag = sp.symbols('I H V F T_drag', real = True)
 
 #Sample Period
-Ts = 1/200
+Ts = 1/100
 
 #0.5N rolling friction
 
@@ -187,7 +187,7 @@ YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 #     correction = 0
 # else:
 #     correction = downVal + 8192
-correction = 4967
+correction = 4998
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
