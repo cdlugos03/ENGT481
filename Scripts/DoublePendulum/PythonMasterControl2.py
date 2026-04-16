@@ -168,7 +168,7 @@ YfinalEst = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 
 correction = 13840
 
-correction2 = 7795 #for pendulum 2
+correction2 = 7736 #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -185,8 +185,8 @@ time.sleep(0.1)
 #Read encoder values
 theta1, theta2 = angleRead(correction, correction2)
 
-theta2 = theta2 - np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center
-theta1 = theta1 + np.clip(x/40, a_min=-0.05, a_max=0.05) #correct angle towards center
+# theta2 = theta2 - np.clip(x/40, a_min=-0.05, a_max=0.05) #correct angle towards center
+# theta1 = theta1 + np.clip(x/40, a_min=-0.05, a_max=0.05) #correct angle towards center
 
 #send low frequency control value to trigger arduino response
 pulses = -65535
