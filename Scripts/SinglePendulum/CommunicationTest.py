@@ -60,12 +60,12 @@ try:
         #Frequency sweep
 #         time.sleep(0.0005) # wait 5ms
         
-        f = f + 20*fDir #increment f
+        #f = f + 20*fDir #increment f
         
-        if f > 12000: #toggle direction
-            fDir = -1
-        elif f < -12000:
-            fDir = 1
+       # if f > 12000: #toggle direction
+            #fDir = -1
+        #elif f < -12000:
+            #fDir = 1
 
         
 #         print("pos:", x)
