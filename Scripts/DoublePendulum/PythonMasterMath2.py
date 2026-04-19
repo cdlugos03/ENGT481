@@ -59,6 +59,9 @@ U = m1*g*l*sp.cos(theta) + m2*g*(lFull*sp.cos(theta) + l2*sp.cos(theta2))
 
 L = T - U
 
+#set up symbols for state 2nd derivatives
+x2div,theta2div,theta22div = sp.symbols('x2div theta2div theta22div', real = True)
+
 # Check if we already have the symbolic model
 if not os.path.exists("symbolic_model2.pkl"):
     print("No .pkl, deriving equations ...")
@@ -85,8 +88,7 @@ if not os.path.exists("symbolic_model2.pkl"):
     Eq2 = EL_theta.lhs - EL_theta.rhs
     Eq3 = EL_theta2.lhs - EL_theta2.rhs
     print("Equations set equal to 0")
-    #set up symbols for x2div and theta2div
-    x2div,theta2div,theta22div = sp.symbols('x2div theta2div theta22div', real = True)
+    
     #substitute in new symbols in place of accelerations
     Eq1 = Eq1.subs({sp.Derivative(x,t,2):x2div, sp.Derivative(theta,t,2):theta2div, sp.Derivative(theta2,t,2):theta22div})
     Eq2 = Eq2.subs({sp.Derivative(x,t,2):x2div, sp.Derivative(theta,t,2):theta2div, sp.Derivative(theta2,t,2):theta22div})
@@ -97,41 +99,39 @@ if not os.path.exists("symbolic_model2.pkl"):
     Subs = sp.solve([Eq1, Eq2, Eq3], [x2div, theta2div, theta22div], simplify = True)
     print("Equations solved for derivatives")
     
-    #substitute in symbols for each state
-    Y1,Y2,Y3,Y4,Y5,Y6 = sp.symbols('Y1 Y2 Y3 Y4 Y5 Y6')
-    StateSubs = {theta:Y1, sp.Derivative(theta,t):Y2, theta2:Y3, sp.Derivative(theta2,t):Y4, x:Y5, sp.Derivative(x,t):Y6}
-    F1 = Subs[theta2div].subs(StateSubs)
-    F2 = Subs[theta22div].subs(StateSubs)
-    F3 = Subs[x2div].subs(StateSubs)
-    print("State symbols substituted in")
-
-    #combine into a matrix (non-linear state space model), and create state matrix (Y)
-    NonLinMod = sp.Matrix([Y2, F1, Y4, F2, Y6, F3])
-    Y = sp.Matrix([Y1, Y2, Y3, Y4, Y5, Y6])
-
-    print("Non-linear model created")
-
-    #linearize model
-    A = NonLinMod.jacobian(Y)
-    B = NonLinMod.diff(F)
-
-    print("linearization completed")
-
-    #Substitute in values
-    Equilibrium = {Y1:0,Y2:0,Y3:0,Y4:0,Y5:0,Y6:0} #all states are 0 at equilibrium
-    A = A.subs(vals).subs(Equilibrium)
-    B = B.subs(vals).subs(Equilibrium)
-
-    print("Values and equilibrium points substituted in")
-    
     # Save the solve results and the Jacobians
     with open("symbolic_model2.pkl", "wb") as f:
-        dill.dump({'A_sym': A, 'B_sym': B, 'Y': Y, 'F': F}, f)
+        dill.dump({'Subs': Subs}, f)
+        
 else:
     print("Loading stored data...")
     with open("symbolic_model2.pkl", "rb") as f:
         data = dill.load(f)
-        A, B, Y, F = data['A_sym'], data['B_sym'], data['Y'], data['F']
+        Subs = data['Subs']
+    
+#substitute in symbols for each state
+Y1,Y2,Y3,Y4,Y5,Y6 = sp.symbols('Y1 Y2 Y3 Y4 Y5 Y6')
+StateSubs = {theta:Y1, sp.Derivative(theta,t):Y2, theta2:Y3, sp.Derivative(theta2,t):Y4, x:Y5, sp.Derivative(x,t):Y6}
+F1 = Subs[theta2div].subs(StateSubs)
+F2 = Subs[theta22div].subs(StateSubs)
+F3 = Subs[x2div].subs(StateSubs)
+print("State symbols substituted in")
+
+#combine into a matrix (non-linear state space model), and create state matrix (Y)
+NonLinMod = sp.Matrix([Y2, F1, Y4, F2, Y6, F3])
+Y = sp.Matrix([Y1, Y2, Y3, Y4, Y5, Y6])
+print("Non-linear model created")
+
+#linearize model
+A = NonLinMod.jacobian(Y)
+B = NonLinMod.diff(F)
+print("linearization completed")
+
+#Substitute in values
+Equilibrium = {Y1:0,Y2:0,Y3:0,Y4:0,Y5:0,Y6:0} #all states are 0 at equilibrium
+A = A.subs(vals).subs(Equilibrium)
+B = B.subs(vals).subs(Equilibrium)
+print("Values and equilibrium points substituted in")
 
 C = sp.Matrix([ #manual input
     [1, 0, 0, 0, 0, 0],

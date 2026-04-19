@@ -9,7 +9,7 @@ import dill
 print("program started")
 
 #define symbols and symbol properties
-t,g,l,lFull,l2,m1,m2,mcart,B_cart_drag = sp.symbols('t g l lFull l2 m1 m2 mcart B_cart_drag', positive = True)
+t,g,l,lFull,l2,m1,m2,mcart,B_cart_drag,ch = sp.symbols('t g l lFull l2 m1 m2 mcart B_cart_drag ch', positive = True)
 theta = sp.Function('theta')(t) #define theta as a function of t
 theta2 = sp.Function('theta2')(t)
 x = sp.Function('x')(t) #define x as a function of t
@@ -18,7 +18,7 @@ I,I2,F,T_drag = sp.symbols('I I2 F T_drag', real = True)
 print("symbols defined")
 
 #Sample Period
-Ts = 1/200
+Ts = 1/100
 
 ArrayPrec = 5 #how many decimals are sent to the Text file
 
@@ -41,26 +41,34 @@ mcartVal = 0.969 - 0.059 #in kg
 B_cart_dragVal = 0.0 #drag coefficient
 gval = 9.81 #gravitational constant
 T_dragVal = 0.0 #rotational drag force
+chVal = 0.035 #height of center of mass of cart (from bearing)
 
 #substitutions
-vals = {m1:m1val,m2:mtotal2,mcart:mcartVal,l:lval,lFull:length,l2:lval2,g:gval,I:Ival,I2:Ival2,T_drag:T_dragVal,B_cart_drag:B_cart_dragVal}
+vals = {m1:m1val,m2:mtotal2,mcart:mcartVal,l:lval,lFull:length,l2:lval2,g:gval,I:Ival,I2:Ival2,T_drag:T_dragVal,B_cart_drag:B_cart_dragVal,ch:chVal}
 
 #define equations
-T =	(
-    (1/2)*(mcart + m1 + m2)*x.diff(t)**2
-    + (1/2)*(m1*l**2 + m2*lFull**2 + I)*theta.diff(t)**2
-    + (1/2)*(m2*l2**2 + I2)*theta2.diff(t)**2
-    + (m1*l + m2*lFull)*x.diff(t)*theta.diff(t)*sp.cos(theta)
-    + m2*l2*x.diff(t)*theta2.diff(t)*sp.cos(theta2)
-    + (m2*lFull*l2)*sp.cos(theta-theta2)*theta.diff(t)*theta2.diff(t)
+T1 = 0.5*mcart*x.diff(t)**2
+T2 = (
+    0.5*m1*((x.diff(t)+l*sp.cos(theta)*theta.diff(t))**2
+    + (-l*sp.sin(theta)*theta.diff(t))**2)
+    + 0.5*I*theta.diff(t)
+    )
+T3 = (
+    0.5*m2*((x.diff(t)+lFull*sp.cos(theta)*theta.diff(t)+l2*sp.cos(theta2)*theta2.diff(t))**2
+    + (-lFull*sp.sin(theta)*theta.diff(t)-l2*sp.sin(theta2)*theta2.diff(t))**2)
+    + 0.5*I2*theta2.diff(t)**2
     )
 
-U = m1*g*l*sp.cos(theta) + m2*g*(lFull*sp.cos(theta) + l2*sp.cos(theta2))
 
-L = T - U
+U = -mcart*g*ch + m1*g*l*sp.cos(theta) + m2*g*(lFull*sp.cos(theta) + l2*sp.cos(theta2))
+
+L = T1 + T2 + T3 - U
+
+#set up symbols for state 2nd derivatives
+x2div,theta2div,theta22div = sp.symbols('x2div theta2div theta22div', real = True)
 
 # Check if we already have the symbolic model
-if not os.path.exists("symbolic_model.pkl"):
+if not os.path.exists("symbolic_model_test.pkl"):
     print("No .pkl, deriving equations ...")
         
     EL_x = sp.Eq(
@@ -85,8 +93,7 @@ if not os.path.exists("symbolic_model.pkl"):
     Eq2 = EL_theta.lhs - EL_theta.rhs
     Eq3 = EL_theta2.lhs - EL_theta2.rhs
     print("Equations set equal to 0")
-    #set up symbols for x2div and theta2div
-    x2div,theta2div,theta22div = sp.symbols('x2div theta2div theta22div', real = True)
+    
     #substitute in new symbols in place of accelerations
     Eq1 = Eq1.subs({sp.Derivative(x,t,2):x2div, sp.Derivative(theta,t,2):theta2div, sp.Derivative(theta2,t,2):theta22div})
     Eq2 = Eq2.subs({sp.Derivative(x,t,2):x2div, sp.Derivative(theta,t,2):theta2div, sp.Derivative(theta2,t,2):theta22div})
@@ -97,41 +104,42 @@ if not os.path.exists("symbolic_model.pkl"):
     Subs = sp.solve([Eq1, Eq2, Eq3], [x2div, theta2div, theta22div], simplify = True)
     print("Equations solved for derivatives")
     
-    #substitute in symbols for each state
-    Y1,Y2,Y3,Y4,Y5,Y6 = sp.symbols('Y1 Y2 Y3 Y4 Y5 Y6')
-    StateSubs = {theta:Y1, sp.Derivative(theta,t):Y2, theta2:Y3, sp.Derivative(theta2,t):Y4, x:Y5, sp.Derivative(x,t):Y6}
-    F1 = Subs[theta2div].subs(StateSubs)
-    F2 = Subs[theta22div].subs(StateSubs)
-    F3 = Subs[x2div].subs(StateSubs)
-    print("State symbols substituted in")
-
-    #combine into a matrix (non-linear state space model), and create state matrix (Y)
-    NonLinMod = sp.Matrix([Y2, F1, Y4, F2, Y6, F3])
-    Y = sp.Matrix([Y1, Y2, Y3, Y4, Y5, Y6])
-
-    print("Non-linear model created")
-
-    #linearize model
-    A = NonLinMod.jacobian(Y)
-    B = NonLinMod.diff(F)
-
-    print("linearization completed")
-
-    #Substitute in values
-    Equilibrium = {Y1:0,Y2:0,Y3:0,Y4:0,Y5:0,Y6:0} #all states are 0 at equilibrium
-    A = A.subs(vals).subs(Equilibrium)
-    B = B.subs(vals).subs(Equilibrium)
-
-    print("Values and equilibrium points substituted in")
-    
     # Save the solve results and the Jacobians
-    with open("symbolic_model.pkl", "wb") as f:
-        dill.dump({'A_sym': A, 'B_sym': B, 'Y': Y, 'F': F}, f)
+    with open("symbolic_model_test.pkl", "wb") as f:
+        dill.dump({'Subs': Subs}, f)
+        
 else:
     print("Loading stored data...")
-    with open("symbolic_model.pkl", "rb") as f:
+    with open("symbolic_model_test.pkl", "rb") as f:
         data = dill.load(f)
-        A, B, Y, F = data['A_sym'], data['B_sym'], data['Y'], data['F']
+        Subs = data['Subs']
+    
+#substitute in symbols for each state
+Y1,Y2,Y3,Y4,Y5,Y6 = sp.symbols('Y1 Y2 Y3 Y4 Y5 Y6')
+StateSubs = {theta:Y1, sp.Derivative(theta,t):Y2, theta2:Y3, sp.Derivative(theta2,t):Y4, x:Y5, sp.Derivative(x,t):Y6}
+F1 = Subs[theta2div].subs(StateSubs)
+F2 = Subs[theta22div].subs(StateSubs)
+F3 = Subs[x2div].subs(StateSubs)
+print("State symbols substituted in")
+
+#combine into a matrix (non-linear state space model), and create state matrix (Y)
+NonLinMod = sp.Matrix([Y2, F1, Y4, F2, Y6, F3])
+Y = sp.Matrix([Y1, Y2, Y3, Y4, Y5, Y6])
+
+print("Non-linear model created")
+
+#linearize model
+A = NonLinMod.jacobian(Y)
+B = NonLinMod.diff(F)
+
+print("linearization completed")
+
+#Substitute in values
+Equilibrium = {Y1:0,Y2:0,Y3:0,Y4:0,Y5:0,Y6:0} #all states are 0 at equilibrium
+A = A.subs(vals).subs(Equilibrium)
+B = B.subs(vals).subs(Equilibrium)
+
+print("Values and equilibrium points substituted in")
 
 C = sp.Matrix([ #manual input
     [1, 0, 0, 0, 0, 0],
@@ -160,7 +168,7 @@ ssDisc = ctrl.c2d(ssCont, Ts)
 #calculate lqr and kalman filter values
 #K, S, E = ctrl.lqr(A, B, sp.diag(10,2,1,1), 0.5)
 start = time.time()
-Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(4,0.1,6,0.1,1,0.1), 3)
+Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(10,10,10,10,10,10), 3)
 end = time.time()
 print("LQG gain matrix calculated", (end-start)*1000)
 
@@ -177,7 +185,7 @@ try:
     
     # 1. Calculate the absolute path
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(script_dir, "control_matrices.txt")
+    file_path = os.path.join(script_dir, "control_matrices_test.txt")
 
     # 2. Use the 'file_path' variable here, NOT the string 'control_matrices.txt'
     with open(file_path, 'w') as f:
