@@ -58,9 +58,9 @@ T3 = (
     )
 
 
-U = -mcart*g*ch + m1*g*l*sp.cos(theta) + m2*g*(lFull*sp.cos(theta) + l2*sp.cos(theta2))
+U = m1*g*l*sp.cos(theta) + m2*g*(lFull*sp.cos(theta) + l2*sp.cos(theta2)) #- mcart*g*ch
 
-L = T1 + T2 + T3 - U
+L = sp.simplify(T1 + T2 + T3 - U)
 
 #set up symbols for state 2nd derivatives
 x2div,theta2div,theta22div = sp.symbols('x2div theta2div theta22div', real = True)
