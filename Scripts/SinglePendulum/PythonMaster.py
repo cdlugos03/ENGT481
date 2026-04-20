@@ -71,9 +71,9 @@ Ts = 1/100
 length = 0.25
 mweight = 0.03 #weight of pendulum weight
 mrod = 0.072 #weight of pendulum arm
-lval = 0.25 - 0.085 #(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
-Ival = 0.001688 #((mweight + (mrod/3))*lval**2) #rotational inertia
-m1val = 0.204 #mweight + mrod #in kg
+lval = 0.15 #(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
+Ival = 0.0023 #((mweight + (mrod/3))*lval**2) #rotational inertia
+m1val = 0.250 #mweight + mrod #in kg
 
 #actual system values
 # length = 0.25
@@ -187,7 +187,7 @@ YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 #     correction = 0
 # else:
 #     correction = downVal + 8192
-correction = 13857 #5699
+correction = 11156 #5699
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -273,8 +273,8 @@ try:
         x = positionRead() #read position from arduino
         
         #CODE FOR ENCODER TUNING
-        correction = correction + x/60 #correct correction value slightly
-        print(round(correction))
+#         correction = correction + x/60 #correct correction value slightly
+#         print(round(correction))
         
         
 

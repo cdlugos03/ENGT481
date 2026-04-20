@@ -28,9 +28,9 @@ ArrayPrec = 5 #how many decimals are sent to the Text file
 length = 0.25 #total length
 mweight = 0.03 #weight of pendulum weight
 mrod = 0.072 #weight of pendulum arm
-lval = 0.0935#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (to center of mass)
-Ival = 0.00183677026 #((mweight + (mrod/3))*lval**2) #rotational inertia
-m1val = 0.202 #mweight + mrod #in kg
+lval = 0.109#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (to center of mass)
+Ival = 0.0020388696 #((mweight + (mrod/3))*lval**2) #rotational inertia
+m1val = 0.238 #mweight + mrod #in kg
 
 length2 = 0.2 #total length
 mtotal2 = 0.148 #pendulum mass
@@ -166,8 +166,8 @@ print("LQG gain matrix calculated", (end-start)*1000)
 
 #QN and RN are multiplied/divided by Ts to discretize them. MATLAB does this internally
 start = time.time()
-Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, Ts*sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), (0.01/Ts)*sp.diag(1,1,1))
-# Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), 0.01*sp.diag(1,1,1))
+# Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, Ts*sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), (0.01/Ts)*sp.diag(1,1,1))
+Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), 0.01*sp.diag(1,1,1))
 end = time.time()
 print("Kalman matrices generated", (end-start)*1000)
 

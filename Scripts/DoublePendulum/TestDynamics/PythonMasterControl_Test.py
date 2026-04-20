@@ -166,9 +166,9 @@ YfinalEst = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 # else:
 #     correction = downVal + 8192
 
-correction = 13857
+correction = 11154
 
-correction2 = 4965 #for pendulum 2
+correction2 = 7340  #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -185,7 +185,7 @@ time.sleep(0.1)
 #Read encoder values
 theta1, theta2 = angleRead(correction, correction2)
 
-# theta2 = theta2 - np.clip(x/40, a_min=-0.05, a_max=0.05) #correct angle towards center
+# theta2 = theta2 - np.clip(x/10, a_min=-0.1, a_max=0.1) #correct angle towards center
 # theta1 = theta1 + np.clip(x/40, a_min=-0.05, a_max=0.05) #correct angle towards center
 
 #send low frequency control value to trigger arduino response
@@ -222,8 +222,8 @@ try:
         
         #calculate control force
         u = -Kd @ YfinalEst
-        print(round(u.item(),1))
-        u = np.clip(u, a_min=-5, a_max=5)
+#         print(round(u.item(),1))
+        u = np.clip(u, a_min=-3, a_max=3)
 #         if loop < 50: #ramp force up to full
 #             u = u*(loop/50.0)
         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT

@@ -26,11 +26,9 @@ ArrayPrec = 5 #how many decimals are sent to the Text file
 
 #actual system values
 length = 0.25 #total length
-mweight = 0.03 #weight of pendulum weight
-mrod = 0.072 #weight of pendulum arm
-lval = 0.0935#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (to center of mass)
-Ival = 0.00183677026 #((mweight + (mrod/3))*lval**2) #rotational inertia
-m1val = 0.202 #mweight + mrod #in kg
+lval = 0.109#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (to center of mass)
+Ival = 0.0020388696 #((mweight + (mrod/3))*lval**2) #rotational inertia
+m1val = 0.238 #mweight + mrod #in kg
 
 length2 = 0.2 #total length
 mtotal2 = 0.148 #pendulum mass
@@ -51,7 +49,7 @@ T1 = 0.5*mcart*x.diff(t)**2
 T2 = (
     0.5*m1*((x.diff(t)+l*sp.cos(theta)*theta.diff(t))**2
     + (-l*sp.sin(theta)*theta.diff(t))**2)
-    + 0.5*I*theta.diff(t)
+    + 0.5*I*theta.diff(t)**2
     )
 T3 = (
     0.5*m2*((x.diff(t)+lFull*sp.cos(theta)*theta.diff(t)+l2*sp.cos(theta2)*theta2.diff(t))**2
@@ -168,14 +166,14 @@ ssDisc = ctrl.c2d(ssCont, Ts)
 #calculate lqr and kalman filter values
 #K, S, E = ctrl.lqr(A, B, sp.diag(10,2,1,1), 0.5)
 start = time.time()
-Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(10,10,10,10,10,10), 3)
+Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(200,20,200,20,10,1), 0.1)
 end = time.time()
 print("LQG gain matrix calculated", (end-start)*1000)
 
 #QN and RN are multiplied/divided by Ts to discretize them. MATLAB does this internally
 start = time.time()
-Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, Ts*sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), (0.01/Ts)*sp.diag(1,1,1))
-# Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), 0.01*sp.diag(1,1,1))
+# Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, Ts*sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), (0.01/Ts)*sp.diag(1,1,1))
+Ld, Pd, Edkalm = ctrl.dlqe(ssDisc.A, sp.diag(1,1,1,1,1,1), ssDisc.C, sp.diag(0.2,0.001,0.2,0.001,0.2,0.001), 0.01*sp.diag(1,1,1))
 end = time.time()
 print("Kalman matrices generated", (end-start)*1000)
 
