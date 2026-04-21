@@ -221,7 +221,7 @@ try:
         Ylast = YfinalEst.copy() #store values for next loop
         
         #calculate control force
-        u = -Kd @ YfinalEst * 1.5
+        u = -Kd @ YfinalEst * 1.3
 #         print(round(u.item(),1))
         u = np.clip(u, a_min=-5, a_max=5)
 #         if loop < 50: #ramp force up to full
