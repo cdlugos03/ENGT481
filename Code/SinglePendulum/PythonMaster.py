@@ -68,12 +68,10 @@ Ts = 1/100
 #0.5N rolling friction
 
 #actual system values
-length = 0.25
-mweight = 0.03 #weight of pendulum weight
-mrod = 0.072 #weight of pendulum arm
-lval = 0.15 #(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
-Ival = 0.0023 #((mweight + (mrod/3))*lval**2) #rotational inertia
-m1val = 0.250 #mweight + mrod #in kg
+length = 0.2
+lval = 0.05 #(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (center of mass)  #FIX THIS YOU IDIOT
+Ival = 0.003 #((mweight + (mrod/3))*lval**2) #rotational inertia
+m1val = 0.260 #mweight + mrod #in kg
 
 #actual system values
 # length = 0.25
@@ -191,7 +189,7 @@ YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 #     correction = downVal + 8192
 
 #This is the value when straight up
-correction = 11156
+correction = 10854.5
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -245,7 +243,7 @@ try:
         Ylast = YfinalEst.copy() #store values for next loop
         
         #calculate control force
-        u = -Kd @ YfinalEst
+        u = -Kd @ YfinalEst * 1.3
         if loop < 200: #ramp force up to full
             u = u*(loop/200.0)
         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT

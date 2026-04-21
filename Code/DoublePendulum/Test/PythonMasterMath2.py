@@ -160,8 +160,8 @@ ssDisc = ctrl.c2d(ssCont, Ts)
 #calculate lqr and kalman filter values
 #K, S, E = ctrl.lqr(A, B, sp.diag(10,2,1,1), 0.5) #continuous
 start = time.time()
-# Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(200,20,200,20,10,1), 0.1) #previous tuning values
-Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(200,5,100,5,5,0.5), 0.1)
+# Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(200,5,100,5,30,0.5), 0.1) #previous tuning values
+Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(200,5,100,5,50,0.5), 0.1)
 end = time.time()
 print("LQG gain matrix calculated", (end-start)*1000)
 

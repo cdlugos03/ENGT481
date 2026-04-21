@@ -166,9 +166,9 @@ YfinalEst = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 # else:
 #     correction = downVal + 8192
 
-correction = 11155
+correction = 10855
 
-correction2 = 7335  #for pendulum 2
+correction2 = 9505  #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -186,7 +186,7 @@ time.sleep(0.1)
 theta1, theta2 = angleRead(correction, correction2)
 
 # theta2 = theta2 + np.clip(x/10, a_min=-0.07, a_max=0.07) #correct angle towards center
-theta1 = theta1 + np.clip(x/10, a_min=-0.07, a_max=0.07) #correct angle towards center
+# theta1 = theta1 + np.clip(x/10, a_min=-0.07, a_max=0.07) #correct angle towards center
 
 #send low frequency control value to trigger arduino response
 pulses = -65535
@@ -200,12 +200,12 @@ x = positionRead()
 #store initial measurements in a matrix
 Ylast = np.array([[theta1], [0], [theta2], [0], [x], [0]])
 
-loop = 0 #loop counting variable
+# loop = 0 #loop counting variable
 
 try:
     while True:
-        if loop < 250: #only count until loop 251
-            loop = loop + 1
+#         if loop < 250: #only count until loop 251
+#             loop = loop + 1
         
         #calculate predicted states (Kalman filter part 1)
         Yest = A @ Ylast + B @ u

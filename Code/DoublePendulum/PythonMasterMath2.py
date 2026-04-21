@@ -26,15 +26,15 @@ ArrayPrec = 5 #how many decimals are sent to the Text file
 
 #actual system values
 #pendulum 1
-length = 0.25 #total length of first pendulum
-lval = 0.109 #in meters (to center of mass of first pendulum)
-Ival = 0.0020388696 #rotational inertia
-m1val = 0.238 #in kg
+length = 0.2 #total length of first pendulum
+lval = 0.087 #in meters (to center of mass of first pendulum)
+Ival = 0.00123324992  #rotational inertia
+m1val = 0.207 #in kg
 #pendulum 2
-length2 = 0.2 #total length
-mtotal2 = 0.148 #pendulum mass
-lval2 = 0.068 #length to center of mass
-Ival2 = 0.00094102171 #rotational inertia
+length2 = 0.25 #total length
+mtotal2 = 0.206 #pendulum mass
+lval2 = 0.106 #length to center of mass
+Ival2 = 0.00197563667 #rotational inertia
 #cart
 mcartVal = 0.969 - 0.059 #mass of cart in kg
 B_cart_dragVal = 0.0 #cart drag coefficient
@@ -160,8 +160,8 @@ ssDisc = ctrl.c2d(ssCont, Ts)
 #calculate lqr and kalman filter values
 #K, S, E = ctrl.lqr(A, B, sp.diag(10,2,1,1), 0.5) #continuous
 start = time.time()
-# Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(200,20,200,20,10,1), 0.1) #previous tuning values
-Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(200,5,100,5,5,0.5), 0.1)
+# Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(200,5,100,5,30,0.5), 0.1) #previous tuning values
+Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(200,5,100,5,50,0.5), 0.1)
 end = time.time()
 print("LQG gain matrix calculated", (end-start)*1000)
 
