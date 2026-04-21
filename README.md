@@ -2,8 +2,6 @@
 
 Repository for ENGT 480/481 Senior Design Capstone (Triple Inverted Pendulum project)
 
-**Things to be careful of:**
- - printing to terminal take a surprising amount of time. Minimize print statements in the control loop, and round float values
 
 **Single pendulum LQG (Linear Quadratic Gaussian) setup:**
  - Run communication test program and hold up pendulum to get a rough estimate of the value when straight up.
@@ -24,6 +22,14 @@ Repository for ENGT 480/481 Senior Design Capstone (Triple Inverted Pendulum pro
 **Triple Pendulum LQG:**
  
  We had not attempted this as of writing this. Good luck!
+
+**Things to be careful of:**
+ - printing to terminal take a surprising amount of time. Minimize print statements in the control loop, and round float values
+
+
+**Helpful resources:**
+ - Matlab pendulum simulation tutorial
+ - Link to double pendulum paper
 
 
 **Possible issues:**

@@ -53,6 +53,7 @@ void setup() {
 
   pinMode(22,INPUT_PULLUP); //limit switch inputs
   pinMode(27,INPUT_PULLUP);
+  pinMode(23,INPUT_PULLUP); //Button input
 
   digitalWrite(9,HIGH); //disable motor  
   
@@ -71,7 +72,7 @@ void setup() {
 void loop() {
 
       //check limit switches
-      if(digitalRead(22) == 0 || digitalRead(27) == 0){ //if limit switch is triggered
+      if(digitalRead(22) == 0 || digitalRead(27) == 0 || digitalRead(23) == 0){ //if limit switch or button is triggered
         digitalWrite(9,HIGH); //disable motor
         TCCR3B = 0x00; //disable timer
         while(1){} //catch program
@@ -165,11 +166,4 @@ ISR(INT3_vect) //interrupt from OC3A
 {
   //increment position by direction
   position = position + direction;
-
-  //check direction, and increment the position
-	// if(direction == 1){
-  //   position = position + 1;
-  // } else{
-  //   position = position - 1;
-  // }
 }
