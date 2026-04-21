@@ -25,27 +25,26 @@ ArrayPrec = 5 #how many decimals are sent to the Text file
 #0.5N rolling friction
 
 #actual system values
-length = 0.25 #total length
-mweight = 0.03 #weight of pendulum weight
-mrod = 0.072 #weight of pendulum arm
-lval = 0.109#(mweight*length+mrod*(length/2))/(mweight+mrod) #in meters (to center of mass)
-Ival = 0.0020388696 #((mweight + (mrod/3))*lval**2) #rotational inertia
-m1val = 0.238 #mweight + mrod #in kg
-
+#pendulum 1
+length = 0.25 #total length of first pendulum
+lval = 0.109 #in meters (to center of mass of first pendulum)
+Ival = 0.0020388696 #rotational inertia
+m1val = 0.238 #in kg
+#pendulum 2
 length2 = 0.2 #total length
 mtotal2 = 0.148 #pendulum mass
 lval2 = 0.068 #length to center of mass
-Ival2 = 0.00094102171 #((mweight2 + (mrod2/3))*length2**2) #rotational inertia
-
-mcartVal = 0.969 - 0.059 #in kg
-B_cart_dragVal = 0.0 #drag coefficient
+Ival2 = 0.00094102171 #rotational inertia
+#cart
+mcartVal = 0.969 - 0.059 #mass of cart in kg
+B_cart_dragVal = 0.0 #cart drag coefficient
 gval = 9.81 #gravitational constant
-T_dragVal = 0.0 #rotational drag force
+T_dragVal = 0.0 #rotational drag force, NOT MODELED CORRECTLY, LEAVE AS 0
 
 #substitutions
 vals = {m1:m1val,m2:mtotal2,mcart:mcartVal,l:lval,lFull:length,l2:lval2,g:gval,I:Ival,I2:Ival2,T_drag:T_dragVal,B_cart_drag:B_cart_dragVal}
 
-#define equations
+#Kinetic energy equation
 T =	(
     (1/2)*(mcart + m1 + m2)*x.diff(t)**2
     + (1/2)*(m1*l**2 + m2*lFull**2 + I)*theta.diff(t)**2
@@ -54,16 +53,17 @@ T =	(
     + m2*l2*x.diff(t)*theta2.diff(t)*sp.cos(theta2)
     + (m2*lFull*l2)*sp.cos(theta-theta2)*theta.diff(t)*theta2.diff(t)
     )
-
+#Potential energy equation
 U = m1*g*l*sp.cos(theta) + m2*g*(lFull*sp.cos(theta) + l2*sp.cos(theta2))
 
+#Lagrange stuff
 L = T - U
 
-#set up symbols for state 2nd derivatives
+#set up symbols for 2nd derivatives of states
 x2div,theta2div,theta22div = sp.symbols('x2div theta2div theta22div', real = True)
 
-# Check if we already have the symbolic model
-if not os.path.exists("symbolic_model2.pkl"):
+# Check for abstract model
+if not os.path.exists("symbolic_model2.pkl"): #if no model, derive it
     print("No .pkl, deriving equations ...")
         
     EL_x = sp.Eq(
@@ -103,7 +103,7 @@ if not os.path.exists("symbolic_model2.pkl"):
     with open("symbolic_model2.pkl", "wb") as f:
         dill.dump({'Subs': Subs}, f)
         
-else:
+else: #Load the model if available
     print("Loading stored data...")
     with open("symbolic_model2.pkl", "rb") as f:
         data = dill.load(f)
@@ -122,15 +122,15 @@ NonLinMod = sp.Matrix([Y2, F1, Y4, F2, Y6, F3])
 Y = sp.Matrix([Y1, Y2, Y3, Y4, Y5, Y6])
 print("Non-linear model created")
 
-#linearize model
-A = NonLinMod.jacobian(Y)
-B = NonLinMod.diff(F)
+#Find A and B matrices
+A_abstract = NonLinMod.jacobian(Y)
+B_abstract = NonLinMod.diff(F)
 print("linearization completed")
 
-#Substitute in values
+#Substitute in values and states for linearization
 Equilibrium = {Y1:0,Y2:0,Y3:0,Y4:0,Y5:0,Y6:0} #all states are 0 at equilibrium
-A = A.subs(vals).subs(Equilibrium)
-B = B.subs(vals).subs(Equilibrium)
+A = A_abstract.subs(vals).subs(Equilibrium)
+B = B_abstract.subs(vals).subs(Equilibrium)
 print("Values and equilibrium points substituted in")
 
 C = sp.Matrix([ #manual input
@@ -158,9 +158,10 @@ ssDisc = ctrl.c2d(ssCont, Ts)
 
 #-----TUNING VALUES-----#
 #calculate lqr and kalman filter values
-#K, S, E = ctrl.lqr(A, B, sp.diag(10,2,1,1), 0.5)
+#K, S, E = ctrl.lqr(A, B, sp.diag(10,2,1,1), 0.5) #continuous
 start = time.time()
-Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(200,20,200,20,10,1), 0.1)
+# Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(200,20,200,20,10,1), 0.1) #previous tuning values
+Kd, Sd, Ed = ctrl.dlqr(ssDisc, sp.diag(200,5,100,5,5,0.5), 0.1)
 end = time.time()
 print("LQG gain matrix calculated", (end-start)*1000)
 

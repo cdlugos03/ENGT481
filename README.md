@@ -10,3 +10,5 @@ Possible issues:
 
 &#x20;- bearing friction and air resistance are not included in the model. These may need to be modeled for accuracy.
 
+ - Could try gain scheduling or re-linearizing the system every time step to approximate a non-linear system with LQG.
+

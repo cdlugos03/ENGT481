@@ -166,9 +166,9 @@ YfinalEst = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 # else:
 #     correction = downVal + 8192
 
-correction = 11154
+correction = 11155
 
-correction2 = 7340  #for pendulum 2
+correction2 = 7335  #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -185,8 +185,8 @@ time.sleep(0.1)
 #Read encoder values
 theta1, theta2 = angleRead(correction, correction2)
 
-# theta2 = theta2 - np.clip(x/40, a_min=-0.05, a_max=0.05) #correct angle towards center
-# theta1 = theta1 + np.clip(x/40, a_min=-0.05, a_max=0.05) #correct angle towards center
+# theta2 = theta2 + np.clip(x/10, a_min=-0.07, a_max=0.07) #correct angle towards center
+theta1 = theta1 + np.clip(x/10, a_min=-0.07, a_max=0.07) #correct angle towards center
 
 #send low frequency control value to trigger arduino response
 pulses = -65535
@@ -211,7 +211,7 @@ try:
         Yest = A @ Ylast + B @ u
 
         theta1, theta2 = angleRead(round(correction), correction2)#read angle
-#        theta1 = theta1 - np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center
+#        theta1 = theta1 - np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center 
         
         #load measurements into matrix (using position from last loop)
         Ymeas = np.array([[theta1], [theta2], [x]])
@@ -221,19 +221,19 @@ try:
         Ylast = YfinalEst.copy() #store values for next loop
         
         #calculate control force
-        u = -Kd @ YfinalEst
-        print(round(u.item(),1))
+        u = -Kd @ YfinalEst * 1.5
+#         print(round(u.item(),1))
         u = np.clip(u, a_min=-5, a_max=5)
 #         if loop < 50: #ramp force up to full
 #             u = u*(loop/50.0)
         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
         
         #convert force to velocity and frequency (u.item takes value from 1x1 array)
-        aCart = u.item() / mcartVal #calculate target cart acceleration
-        xDivLast = xDiv #store last speed
-        xDiv = xDivLast + aCart * Ts #calulate target cart speed
+#         aCart = u.item() / mcartVal #calculate target cart acceleration
+#         xDivLast = xDiv #store last speed
+#         xDiv = xDivLast + aCart * Ts #calulate target cart speed
         
-#         xDiv = YfinalEst[5].item() #pull velocity from kalman filter estimation
+        xDiv = YfinalEst[5].item() #pull velocity from kalman filter estimation
         
         xDiv = np.clip(xDiv, a_min=-5, a_max=5)
 #         print(round(xDiv,2))
