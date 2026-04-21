@@ -27,14 +27,14 @@ ArrayPrec = 5 #how many decimals are sent to the Text file
 #actual system values
 #pendulum 1
 length = 0.2 #total length of first pendulum
-lval = 0 #in meters (to center of mass of first pendulum)
-Ival = 0 #rotational inertia
-m1val = 0 #in kg
+lval = 0.087 #in meters (to center of mass of first pendulum)
+Ival = 0.00123324992  #rotational inertia
+m1val = 0.207 #in kg
 #pendulum 2
 length2 = 0.25 #total length
-mtotal2 = 0 #pendulum mass
-lval2 = 0 #length to center of mass
-Ival2 = 0 #rotational inertia
+mtotal2 = 0.206 #pendulum mass
+lval2 = 0.106 #length to center of mass
+Ival2 = 0.00197563667 #rotational inertia
 #cart
 mcartVal = 0.969 - 0.059 #mass of cart in kg
 B_cart_dragVal = 0.0 #cart drag coefficient
