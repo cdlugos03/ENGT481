@@ -180,6 +180,8 @@ Ylast = np.array([[0], [0], [0], [0]]) #previous state storage
 YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 
 #angle corrections
+#This block is for measuring the angle when hanging, and calculating what the up value 'should' be.
+#it is not very accurate, but may be good enough to start the tuning with.
 # downVal = 10675 - 8192
 # if downVal > 8192:
 #     correction = downVal - 8192
@@ -187,7 +189,9 @@ YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 #     correction = 0
 # else:
 #     correction = downVal + 8192
-correction = 11156 #5699
+
+#This is the value when straight up
+correction = 11156
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -228,8 +232,10 @@ try:
 
 
         theta1 = angleRead(correction)#read angle
-#         #TRY TO REMOVE THIS!
+
+        #---- ANGLE CORRECTION ----
 #         theta1 = theta1 - np.clip(x/30, a_min=-0.05, a_max=0.05) #correct angle towards center
+        #---- ANGLE CORRECTION ----
 
         #load measurements into matrix (using position from last loop)
         Ymeas = np.array([[theta1], [x]])
@@ -249,7 +255,7 @@ try:
 #         xDivLast = xDiv #store last speed
 #         xDiv = xDivLast + aCart * Ts #calulate target cart speed
         
-        #TEST THIS TO SEE IF IT WORKS
+        #pull estimated cart velocity from matrix
         xDiv = YfinalEst[3].item() #pull velocity from kalman filter estimation
 #         print(round(xDiv,2))
         
@@ -272,15 +278,14 @@ try:
         
         x = positionRead() #read position from arduino
         
-        #CODE FOR ENCODER TUNING
-#         correction = correction + x/60 #correct correction value slightly
-#         print(round(correction))
-        
-        
+        #---- ANGLE TUNING ----
+#         correction = correction + x/60 #correct angle slightly towards center each loop
+#         print(round(correction)) 
+        #---- ANGLE TUNING ----
 
 #this section kills the program
 except KeyboardInterrupt: # to end program use ctrl c
     print("\nControl loop stopped\n")
-    arduino.write(0xFFFFFFFF) #send stop command to Arduino
+    arduino.write(0xFFFFFFFF) #send stop command to Arduino #NOT WORKING
     arduino.close() #ends connection between devices
     sys.exit()
