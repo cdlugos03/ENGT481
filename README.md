@@ -22,6 +22,7 @@ Repository for ENGT 480/481 Senior Design Capstone (Triple Inverted Pendulum pro
  - To adjust the abstract dynamics, make sure to delete the .pkl file, and then run the math script to generate a file for the new dynamics. This will take a long time to run (only when re-generating the .pkl file), so run this on a personal computer. it will take from 15-30 minutes to calculate.
 
 **Triple Pendulum LQG**
+ 
  We had not attempted this as of writing this. Good luck!
 
 
