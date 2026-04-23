@@ -15,16 +15,21 @@ Repository for ENGT 480/481 Senior Design Capstone (Triple Inverted Pendulum pro
 **Double pendulum LQG setup:**
  - Use the single pendulum script first to tune the first pendulum angle
  - Run the communication test program, and let the pendulums hang. Record the second pendulum angle to use for the 'correction2' variable value.
- - The control script should be ready to run at this point, though it doesn't actually stabilize the pendulums in its current state.
+ - The control script should be ready to run at this point.
  - To adjust tuning, or physical measurements of the pendulum parts, update the values in the math script, and run it. this will update the control_matrices.txt file.
  - To adjust the abstract dynamics, make sure to delete the .pkl file, and then run the math script to generate a file for the new dynamics. This will take a long time to run (only when re-generating the .pkl file), so run this on a personal computer. it will take from 15-30 minutes to calculate.
+ - The pendulum will likely not stabilize on the first test, so methodically mess with the 'correction2' value until the pendulum is able to stay upright (Increasing the value brings it left, decreasing brings it right)
 
 **Triple Pendulum LQG:**
  
- We had not attempted this as of writing this. Good luck!
+ We had not attempted this as of writing this. Good luck! This will require a more sophisticated control system than linear LQG. Here are some ideas we had:
+  - Could try re-linearizing the system every time step to approximate a non-linear system with LQG. (Raspberry pi may not be powerful enough if not well optimized)
+ - Could try model predictive control (MPC). (Raspberry pi may not be powerful enough if not well optimized)
+ - Could try a machine learning approach. 
+
 
 **Things to be careful of:**
- - printing to terminal take a surprising amount of time. Minimize print statements in the control loop, and round float values
+ - printing to terminal takes a surprising amount of time. Minimize print statements in the control loop, and round float values
 
 
 **Helpful resources:**
@@ -38,9 +43,5 @@ Repository for ENGT 480/481 Senior Design Capstone (Triple Inverted Pendulum pro
  - bearing friction and air resistance are not included in the model. These may need to be modeled for accuracy.
 
 **Suggestions:**
- - Need a way to tune the angles more precisely.
- - PID corrections could help reduce/eliminate drifting.
- - Could try gain scheduling or re-linearizing the system every time step to approximate a non-linear system with LQG. (Rasperry pi may not be powerful enough if not well optimized)
- - Could try model predictive control (MPC). (Rasperry pi may not be powerful enough if not well optimized)
- - Could try a machine learning approach.
-
+ - Need a way to tune the angles more precisely. Maybe a program could be designed to help tune the second pendulum angle more easily and precisely?
+ - PID corrections could help reduce/eliminate drifting in the rail position over time.
