@@ -3,11 +3,11 @@
 Repository for ENGT 480/481 Senior Design Capstone (Triple Inverted Pendulum project)
 
 **Raspberry Pi setup**
- - The python libraries are installed in a venv virtual environment called 'INSERT TEXT'.
- - path: INSERT PATH HERE
+ - The python libraries are installed in a venv virtual environment called 'PythonLibraries'.
+ - path: /home/engt481/PythonLibraries
  - Thonny is set up to use the python libraries from this environment, if you want to use a different editor you'll need to set this up.
- - Activation command for running scripts in terminal:
- - Deactivation command:
+ - Activation command for running scripts in terminal (from engt481 directory): source PythonLibraries/bin/activate
+ - Deactivation command: deactivate
 
 **Single pendulum LQG (Linear Quadratic Gaussian) setup:**
  - Run communication test program and hold up pendulum to get a rough estimate of the value when straight up.
@@ -24,7 +24,7 @@ Repository for ENGT 480/481 Senior Design Capstone (Triple Inverted Pendulum pro
  - The control script should be ready to run at this point.
  - To adjust tuning, or physical measurements of the pendulum parts, update the values in the math script, and run it. this will update the control_matrices.txt file.
  - To adjust the abstract dynamics, make sure to delete the .pkl file, and then run the math script to generate a file for the new dynamics. This will take a long time to run (only when re-generating the .pkl file), so run this on a personal computer. it will take from 15-30 minutes to calculate.
- - The pendulum will likely not stabilize on the first test, so methodically mess with the 'correction2' value until the pendulum is able to stay upright (Increasing the value brings it left, decreasing brings it right)
+ - The pendulum will likely not stabilize on the first test, so methodically mess with the 'correction2' value until the pendulum is able to stay upright (Increasing the value brings it right, decreasing brings it left)
 
 **Triple Pendulum LQG:**
  
