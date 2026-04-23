@@ -48,4 +48,4 @@ https://www.researchgate.net/publication/348468205_Modeling_and_Control_of_a_Dou
 **Suggestions:**
  - Need a way to tune the angles more precisely. Maybe a program could be designed to help tune the second pendulum angle more easily and precisely?
  - PID corrections could help reduce/eliminate drifting in the rail position over time.
- - bearing friction and air resistance are not included in the model. These may need to be modeled for the triple pendulum.
+ - Bearing friction and air resistance are not included in the model. These may need to be modeled for the triple pendulum.
