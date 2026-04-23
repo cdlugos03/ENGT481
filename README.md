@@ -2,6 +2,12 @@
 
 Repository for ENGT 480/481 Senior Design Capstone (Triple Inverted Pendulum project)
 
+**Raspberry Pi setup**
+ - The python libraries are installed in a venv virtual environment called 'INSERT TEXT'.
+ - path: INSERT PATH HERE
+ - Thonny is set up to use the python libraries from this environment, if you want to use a different editor you'll need to set this up.
+ - Activation command for running scripts in terminal:
+ - Deactivation command:
 
 **Single pendulum LQG (Linear Quadratic Gaussian) setup:**
  - Run communication test program and hold up pendulum to get a rough estimate of the value when straight up.
@@ -30,6 +36,7 @@ Repository for ENGT 480/481 Senior Design Capstone (Triple Inverted Pendulum pro
 
 **Things to be careful of:**
  - printing to terminal takes a surprising amount of time. Minimize print statements in the control loop, and round float values
+ - Make sure to power down the raspberry pi properly. If you just cut the power, it could cause it to corrupt the github.
 
 
 **Helpful resources:**
