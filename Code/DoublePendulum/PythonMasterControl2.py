@@ -226,7 +226,8 @@ try:
         u = np.clip(u, a_min=-5, a_max=5)
 #         if loop < 50: #ramp force up to full
 #             u = u*(loop/50.0)
-        #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
+
+        #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR POSITION DRIFT
         
         #convert force to velocity and frequency (u.item takes value from 1x1 array)
 #         aCart = u.item() / mcartVal #calculate target cart acceleration
@@ -261,7 +262,8 @@ try:
         arduino.write(sendPulses) #send top value to Arduino
         
         x = positionRead() #read position from arduino
-#         correction = correction + x/50 #correct correction value slightly
+#         correction2 = correction2 - x/70 #correct correction value slightly to tune to center
+#         print(round(correction2))
         
         
         
