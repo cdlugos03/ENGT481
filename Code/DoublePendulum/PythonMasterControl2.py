@@ -166,9 +166,9 @@ YfinalEst = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 # else:
 #     correction = downVal + 8192
 
-correction = 10855
+correction = 7078
 
-correction2 = 9505  #for pendulum 2
+correction2 = 5160  #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -200,12 +200,12 @@ x = positionRead()
 #store initial measurements in a matrix
 Ylast = np.array([[theta1], [0], [theta2], [0], [x], [0]])
 
-# loop = 0 #loop counting variable
+loop = 0 #loop counting variable
 
 try:
     while True:
-#         if loop < 250: #only count until loop 251
-#             loop = loop + 1
+        if loop < 250: #only count until loop 251
+            loop = loop + 1
         
         #calculate predicted states (Kalman filter part 1)
         Yest = A @ Ylast + B @ u
@@ -224,8 +224,7 @@ try:
         u = -Kd @ YfinalEst * 1.3
 #         print(round(u.item(),1))
         u = np.clip(u, a_min=-5, a_max=5)
-#         if loop < 50: #ramp force up to full
-#             u = u*(loop/50.0)
+
 
         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR POSITION DRIFT
         
@@ -235,6 +234,9 @@ try:
 #         xDiv = xDivLast + aCart * Ts #calulate target cart speed
         
         xDiv = YfinalEst[5].item() #pull velocity from kalman filter estimation
+        
+        if loop < 20: #ramp force up to full
+            xDiv = xDiv*(loop/20.0)
         
         xDiv = np.clip(xDiv, a_min=-5, a_max=5)
 #         print(round(xDiv,2))
