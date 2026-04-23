@@ -33,8 +33,10 @@ Repository for ENGT 480/481 Senior Design Capstone (Triple Inverted Pendulum pro
 
 
 **Helpful resources:**
- - Matlab pendulum simulation tutorial
- - Link to double pendulum paper
+ - Matlab pendulum simulation tutorial:
+https://www.mathworks.com/help/symbolic/derive-and-simulate-cart-pole-system.html
+ - Link to double pendulum paper where we found dynamic equations:
+https://www.researchgate.net/publication/348468205_Modeling_and_Control_of_a_Double_Inverted_Pendulum_using_LQR_with_Parameter_Optimization_through_GA_and_PSO
 
 
 **Possible issues:**
