@@ -45,12 +45,7 @@ https://www.mathworks.com/help/symbolic/derive-and-simulate-cart-pole-system.htm
  - Link to double pendulum paper where we found dynamic equations:
 https://www.researchgate.net/publication/348468205_Modeling_and_Control_of_a_Double_Inverted_Pendulum_using_LQR_with_Parameter_Optimization_through_GA_and_PSO
 
-
-**Possible issues:**
- - Angles may not be spot on, causing inaccuracies.
- - Linear LQG may just not be powerful enough for the double pendulum. May need to switch to a non-linear control method.
- - bearing friction and air resistance are not included in the model. These may need to be modeled for accuracy.
-
 **Suggestions:**
  - Need a way to tune the angles more precisely. Maybe a program could be designed to help tune the second pendulum angle more easily and precisely?
  - PID corrections could help reduce/eliminate drifting in the rail position over time.
+ - bearing friction and air resistance are not included in the model. These may need to be modeled for the triple pendulum.
