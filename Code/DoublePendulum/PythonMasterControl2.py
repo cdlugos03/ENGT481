@@ -166,9 +166,9 @@ YfinalEst = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 # else:
 #     correction = downVal + 8192
 
-correction = 7078
+correction = 9235
 
-correction2 = 5160  #for pendulum 2
+correction2 = 11020  #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -221,7 +221,7 @@ try:
         Ylast = YfinalEst.copy() #store values for next loop
         
         #calculate control force
-        u = -Kd @ YfinalEst * 1.3
+        u = -Kd @ YfinalEst * 1.2
 #         print(round(u.item(),1))
         u = np.clip(u, a_min=-5, a_max=5)
 

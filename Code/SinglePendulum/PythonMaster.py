@@ -189,7 +189,7 @@ YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 #     correction = downVal + 8192
 
 #This is the value when straight up
-correction = 7078
+correction = 9235
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -277,8 +277,8 @@ try:
         x = positionRead() #read position from arduino
         
         #---- ANGLE TUNING ----
-#         correction = correction + x/60 #correct angle slightly towards center each loop
-#         print(round(correction)) 
+        correction = correction + x/60 #correct angle slightly towards center each loop
+        print(round(correction)) 
         #---- ANGLE TUNING ----
 
 #this section kills the program

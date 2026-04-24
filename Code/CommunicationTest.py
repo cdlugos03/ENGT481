@@ -106,4 +106,4 @@ except KeyboardInterrupt: # to end program use ctrl c
     arduino.write(0xFFFFFFFF) #send stop command to Arduino
     #cereal.write('\n') #indent
     time.sleep(0.2) #wait 200ms
-    arduino.close() #ends connection between devices
+    arduino.close() #ends connection between devices525
