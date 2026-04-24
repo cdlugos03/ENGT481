@@ -166,9 +166,9 @@ YfinalEst = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 # else:
 #     correction = downVal + 8192
 
-correction = 9235
+correction = 9303
 
-correction2 = 11020  #for pendulum 2
+correction2 = 10037 +10 #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -210,8 +210,8 @@ try:
         #calculate predicted states (Kalman filter part 1)
         Yest = A @ Ylast + B @ u
 
-        theta1, theta2 = angleRead(round(correction), correction2)#read angle
-#        theta1 = theta1 - np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center 
+        theta1, theta2 = angleRead(correction, correction2)#read angle
+#        correctionSend = correction + np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center 
         
         #load measurements into matrix (using position from last loop)
         Ymeas = np.array([[theta1], [theta2], [x]])
@@ -221,7 +221,7 @@ try:
         Ylast = YfinalEst.copy() #store values for next loop
         
         #calculate control force
-        u = -Kd @ YfinalEst * 1.2
+        u = -Kd @ YfinalEst * 1.5
 #         print(round(u.item(),1))
         u = np.clip(u, a_min=-5, a_max=5)
 
@@ -233,7 +233,7 @@ try:
 #         xDivLast = xDiv #store last speed
 #         xDiv = xDivLast + aCart * Ts #calulate target cart speed
         
-        xDiv = YfinalEst[5].item() #pull velocity from kalman filter estimation
+        xDiv = YfinalEst[5].item() #pull velocity from kalman filter estimation instead of calculating force separately
         
         if loop < 20: #ramp force up to full
             xDiv = xDiv*(loop/20.0)
@@ -264,8 +264,8 @@ try:
         arduino.write(sendPulses) #send top value to Arduino
         
         x = positionRead() #read position from arduino
-#         correction2 = correction2 - x/70 #correct correction value slightly to tune to center
-#         print(round(correction2))
+        correction = correction + x/80 #correct correction value slightly to tune to center
+        print(round(correction,1))
         
         
         

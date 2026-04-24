@@ -189,7 +189,7 @@ YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 #     correction = downVal + 8192
 
 #This is the value when straight up
-correction = 9235
+correction = 9291.8
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -243,7 +243,7 @@ try:
         Ylast = YfinalEst.copy() #store values for next loop
         
         #calculate control force
-        u = -Kd @ YfinalEst * 1.3
+        u = -Kd @ YfinalEst * 1.8
         if loop < 200: #ramp force up to full
             u = u*(loop/200.0)
         #MAY NEED TO IMPLEMENT PID CORRECTIONS FOR DRIFT
@@ -278,7 +278,7 @@ try:
         
         #---- ANGLE TUNING ----
         correction = correction + x/60 #correct angle slightly towards center each loop
-        print(round(correction)) 
+        print(round(correction, 1)) 
         #---- ANGLE TUNING ----
 
 #this section kills the program
