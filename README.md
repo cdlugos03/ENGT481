@@ -28,7 +28,6 @@ Repository for ENGT 480/481 Senior Design Capstone (Triple Inverted Pendulum pro
  - If the pendulum is slowly drifting off, use a finger to lightly touch the 2nd pendulum prevent it from going off the rail while it tunes. It should slowly correct 'correction' until the pendulum begins to center itself. It will oscillate at first, but should stabilize eventually in the center.
 
 **Triple Pendulum LQG:**
- 
  We had not attempted this as of writing this. Good luck! This will require a more sophisticated control system than linear LQG. Here are some ideas we had:
   - Could try re-linearizing the system every time step to approximate a non-linear system with LQG. (Raspberry pi may not be powerful enough if not well optimized)
  - Could try model predictive control (MPC). (Raspberry pi may not be powerful enough if not well optimized)
@@ -36,8 +35,8 @@ Repository for ENGT 480/481 Senior Design Capstone (Triple Inverted Pendulum pro
 
 
 **Things to be careful of:**
- - printing to terminal takes a surprising amount of time. Minimize print statements in the control loop, and round float values
- - Make sure to power down the raspberry pi properly. If you just cut the power, it could cause it to corrupt the github.
+ - Printing to terminal takes a surprising amount of time. Minimize print statements in the control loop, and round printed float values. Sometimes angles being dropped and triggering the filter messages can be because the control loop took too long (because of printing), not actually because a bad angle was received from the encoder.
+ - Make sure to power down the raspberry pi properly. If you just cut the power, it could cause it to corrupt the github. (This is fixable, just annoying to deal with)
 
 
 **Helpful resources:**
@@ -47,6 +46,6 @@ https://www.mathworks.com/help/symbolic/derive-and-simulate-cart-pole-system.htm
 https://www.researchgate.net/publication/348468205_Modeling_and_Control_of_a_Double_Inverted_Pendulum_using_LQR_with_Parameter_Optimization_through_GA_and_PSO
 
 **Suggestions:**
- - Need a way to tune the angles more precisely. Maybe a program could be designed to help tune the second pendulum angle more easily and precisely?
- - PID corrections could help reduce/eliminate drifting in the rail position over time.
+ - A way to tune the angles more precisely could be helpful. Maybe a program could be designed to help find the second pendulum angle more easily and precisely?
  - Bearing friction and air resistance are not included in the model. These may need to be modeled for the triple pendulum.
+ - This is probably uneccesary, but if a more powerful control computer is needed (replacing the raspberry pi 4) it would likely be easy to switch it out. The python code is not raspberry pi specific (at least not that I am aware), and should be easy to adapt.
