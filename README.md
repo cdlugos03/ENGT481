@@ -24,7 +24,8 @@ Repository for ENGT 480/481 Senior Design Capstone (Triple Inverted Pendulum pro
  - The control script should be ready to run at this point.
  - To adjust tuning, or physical measurements of the pendulum parts, update the values in the math script, and run it. this will update the control_matrices.txt file.
  - To adjust the abstract dynamics, make sure to delete the .pkl file, and then run the math script to generate a file for the new dynamics. This will take a long time to run (only when re-generating the .pkl file), so run this on a personal computer. it will take from 15-30 minutes to calculate.
- - The pendulum will likely not stabilize on the first test, so methodically mess with the 'correction2' value until the pendulum is able to stay upright (Increasing the value brings it right, decreasing brings it left)
+ - The pendulum will likely not stabilize on the first test, so methodically mess with the 'correction2' value until the pendulum is able to stay upright (Increasing the value brings it left, decreasing brings it right)
+ - If the pendulum is slowly drifting off, use a finger to lightly touch the 2nd pendulum prevent it from going off the rail while it tunes. It should slowly correct 'correction' until the pendulum begins to center itself. It will oscillate at first, but should stabilize eventually in the center.
 
 **Triple Pendulum LQG:**
  
