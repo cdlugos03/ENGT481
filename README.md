@@ -66,5 +66,6 @@ https://www.researchgate.net/publication/348468205_Modeling_and_Control_of_a_Dou
  - This is probably uneccesary, but if a more powerful control computer is needed (replacing the raspberry pi 4) it would likely be easy to switch it out. The python code is not raspberry pi specific (at least not that I am aware), and should be easy to adapt.
 
 **Contact**
+
 If you have a question about the system that we forgot to address:
  - whitesell.samuel@gmail.com (worked mainly on control code and tuning)
