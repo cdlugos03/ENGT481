@@ -64,3 +64,7 @@ https://www.researchgate.net/publication/348468205_Modeling_and_Control_of_a_Dou
  - A way to tune the angles more precisely could be helpful. Maybe a program could be designed to help find the second pendulum angle more easily and precisely?
  - Bearing friction and air resistance are not included in the model. These may need to be modeled for the triple pendulum.
  - This is probably uneccesary, but if a more powerful control computer is needed (replacing the raspberry pi 4) it would likely be easy to switch it out. The python code is not raspberry pi specific (at least not that I am aware), and should be easy to adapt.
+
+**Contact**
+If you have a question about the system that we forgot to address:
+ - whitesell.samuel@gmail.com (worked mainly on control code and tuning)
