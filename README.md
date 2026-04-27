@@ -68,4 +68,8 @@ https://www.researchgate.net/publication/348468205_Modeling_and_Control_of_a_Dou
 **Contact**
 
 If you have a question about the system that we forgot to address:
- - whitesell.samuel@gmail.com (worked mainly on control code and tuning)
+ - Samuel Whitesell: whitesell.samuel@gmail.com
+ - Ryan Hanshew: hanshew.ryan@gmail.com
+ - Patrick Clark: Patrickgclark09@gmail.com
+ - Edward Morris: emmorris853@gmail.com
+ - Cooper Dlugos: 
