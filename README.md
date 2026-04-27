@@ -72,4 +72,4 @@ If you have a question about the system that we forgot to address:
  - Ryan Hanshew: hanshew.ryan@gmail.com
  - Patrick Clark: Patrickgclark09@gmail.com
  - Edward Morris: emmorris853@gmail.com
- - Cooper Dlugos: 
+ - Cooper Dlugos: Coopersd036@gmail.com
