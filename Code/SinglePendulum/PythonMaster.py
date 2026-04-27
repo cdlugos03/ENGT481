@@ -189,7 +189,7 @@ YfinalEst = np.array([[0], [0], [0], [0]]) #previous state storage
 #     correction = downVal + 8192
 
 #This is the value when straight up
-correction = 9291.8
+correction = 9323.9
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32

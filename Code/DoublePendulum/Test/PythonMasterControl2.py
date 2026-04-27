@@ -8,12 +8,8 @@ import sys
 import os
 import re
 
-angleLast = 0
-angleLast2 = 0
 
 def angleRead(cor, cor2):
-    global angleLast
-    global angleLast2
     
     #Read encoder values
     line1 = bytearray()
@@ -31,16 +27,6 @@ def angleRead(cor, cor2):
         angle1 = angle1 - cor
         angle2 = angle2 - cor2
         
-        #filter bad angles out
-        if angle1 > 17000:
-            angle1 = angleLast
-            print("F1")
-        angleLast = angle1 #store angle for next loop
-        if angle2 > 17000:
-            angle2 = angleLast2
-            print("F2")
-        angleLast2 = angle2 #store angle for next loop
-        
         #convert to radians
         thetaRead = -((angle1*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
         theta2Read = -((angle2*2*np.pi)/16383) #THIS ONLY WORKS FOR 14 BIT
@@ -49,6 +35,14 @@ def angleRead(cor, cor2):
         
         #add angles to fit equations
         theta2Read = theta2Read + thetaRead
+        
+        #filter bad angles out
+        if angle1 > 17000:
+            thetaRead = 100 #Value for marking missed reading
+            print("F1")
+        if angle2 > 17000:
+            theta2Read = 100 #Value for marking missed reading
+            print("F2")
         
 #         print(angle1, angle2)
         esp32.reset_input_buffer()
@@ -166,9 +160,9 @@ YfinalEst = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 # else:
 #     correction = downVal + 8192
 
-correction = 9323.9 +20
+correction = 9323.9 -3.3
 
-correction2 = 7576 +10 #for pendulum 2
+correction2 = 7577 -0 #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -184,6 +178,11 @@ time.sleep(0.1)
 #get first angle measurements
 #Read encoder values
 theta1, theta2 = angleRead(correction, correction2)
+
+if theta1 == 100:
+    theta1 = 0
+if theta2 == 100:
+    theta2 = 0
 
 # theta2 = theta2 + np.clip(x/10, a_min=-0.07, a_max=0.07) #correct angle towards center
 # theta1 = theta1 + np.clip(x/10, a_min=-0.07, a_max=0.07) #correct angle towards center
@@ -211,7 +210,13 @@ try:
         Yest = A @ Ylast + B @ u
 
         theta1, theta2 = angleRead(correction, correction2)#read angle
-#        correctionSend = correction + np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center 
+#        correctionSend = correction + np.clip(x/20, a_min=-0.05, a_max=0.05) #correct angle towards center
+
+        #Use kalman estimates if angles are dropped
+        if theta1 == 100:
+            theta1 = Yest[0].item()
+        if theta2 == 100:
+            theta2 = Yest[2].item()
         
         #load measurements into matrix (using position from last loop)
         Ymeas = np.array([[theta1], [theta2], [x]])
@@ -264,7 +269,7 @@ try:
         arduino.write(sendPulses) #send top value to Arduino
         
         x = positionRead() #read position from arduino
-        correction = correction + x/60 + xDiv/30 #correct correction value slightly to tune to center
+        correction = correction + x/80 #correct correction value slightly to tune to center
 #         print(round(correction,1))
         
         
