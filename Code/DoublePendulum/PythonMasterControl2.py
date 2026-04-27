@@ -168,7 +168,7 @@ YfinalEst = np.array([[0], [0], [0], [0], [0], [0]]) #previous state storage
 
 correction = 9323.9 +20
 
-correction2 = 7576 +10 #for pendulum 2
+correction2 = 7573 +10 #for pendulum 2
 
 #initialize serial
 esp32 = serial.Serial('/dev/ttyUSB0', 921600, timeout=0.003) #initiate communication with the ESP32
@@ -221,7 +221,7 @@ try:
         Ylast = YfinalEst.copy() #store values for next loop
         
         #calculate control force
-        u = -Kd @ YfinalEst * 1.5
+        u = -Kd @ YfinalEst * 1.5 #2.5 worked, still testing impact of this
 #         print(round(u.item(),1))
         u = np.clip(u, a_min=-5, a_max=5)
 
@@ -265,8 +265,7 @@ try:
         
         x = positionRead() #read position from arduino
         correction = correction + x/60 + xDiv/30 #correct correction value slightly to tune to center
-#         print(round(correction,1))
-        
+#         print(round(correction))
         
         
 
