@@ -32,7 +32,7 @@ Ival = 0.00123324992  #rotational inertia
 m1val = 0.207 #in kg
 #pendulum 2
 length2 = 0.25 #total length
-mtotal2 = 0.206 #pendulum mass
+mtotal2 = 0.210#0.206 #pendulum mass
 lval2 = 0.106 #length to center of mass
 Ival2 = 0.00197563667 #rotational inertia
 #cart
