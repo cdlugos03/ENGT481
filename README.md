@@ -2,6 +2,8 @@
 
 Repository for ENGT 480/481 Senior Design Capstone (Triple Inverted Pendulum project)
 
+CAD FILES ARE ON THE DESKTOP OF THE RASPBERRY PI
+
 **Raspberry Pi setup**
  - The python libraries are installed in a venv virtual environment called 'PythonLibraries'.
  - path: /home/engt481/PythonLibraries
