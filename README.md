@@ -8,7 +8,7 @@ CAD FILES ARE ON THE DESKTOP OF THE RASPBERRY PI
  - The python libraries are installed in a venv virtual environment called 'PythonLibraries'.
  - path: /home/engt481/PythonLibraries
  - Thonny is set up to use the python libraries from this environment, if you want to use a different editor you'll need to set this up.
- - Activation command for running scripts in terminal (from engt481 directory): source PythonLibraries/bin/activate
+ - Activation command for running scripts in terminal (from Home directory): source PythonLibraries/bin/activate
  - Deactivation command: deactivate
 
 **Single pendulum LQG (Linear Quadratic Gaussian) setup:**
